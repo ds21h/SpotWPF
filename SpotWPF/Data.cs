@@ -294,5 +294,36 @@ namespace SpotWPF {
             return lResult;
 
         }
+
+        internal int xStoreComments(string pFileName, string pFormatFileName) {
+            SqlParameter lParFileName;
+            SqlParameter lParFormatFileName;
+            int lResult;
+
+            lParFileName = SQLHulp.gParInit("@File", pFileName);
+            lParFormatFileName = SQLHulp.gParInit("@Format", pFormatFileName);
+            using (var lComm = new SqlCommand())
+            using (var lConn = new SqlConnection(cConnStr)) {
+                lComm.Parameters.Add(lParFileName);
+                lComm.Parameters.Add(lParFormatFileName);
+                lConn.Open();
+                lComm.Connection = lConn;
+                lComm.CommandText = "BulkInsertComments";
+                lComm.CommandType = CommandType.StoredProcedure;
+                lResult = 0;
+                try {
+                    lComm.ExecuteNonQuery();
+                } catch (Exception pExc) {
+                    if (pExc.HResult == -2146232060) {
+                        lResult = 1;
+                    } else {
+                        lResult = 9;
+                    }
+                }
+            }
+
+            return lResult;
+
+        }
     }
 }

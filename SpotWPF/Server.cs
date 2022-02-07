@@ -14,6 +14,7 @@ namespace SpotWPF {
         private string mUserId;
         private string mPassWord;
         private long mHighSpotId;
+        private long mHighCommentId;
 
         internal Server(int pId, string pName, string pReader, int pPort, bool pSSL, string pUserId, string pPassWord, long pHighSpotId) {
             mId = pId;
@@ -24,6 +25,7 @@ namespace SpotWPF {
             mUserId = pUserId;
             mPassWord = pPassWord;
             mHighSpotId = pHighSpotId;
+            mHighCommentId = 0;
         }
 
         internal int xId {
@@ -74,6 +76,15 @@ namespace SpotWPF {
             }
             set {
                 mHighSpotId = value;
+            }
+        }
+
+        internal long xHighCommentId {
+            get {
+                return mHighCommentId;
+            }
+            set {
+                mHighCommentId = value;
             }
         }
     }

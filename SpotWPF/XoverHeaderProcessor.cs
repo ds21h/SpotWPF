@@ -5,15 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SpotWPF {
-    public class XoverResponse : IMultiLineProcess {
-//        private StreamWriter mStream;
+    internal class XoverHeaderProcessor : IMultiLineProcess {
+        //        private StreamWriter mStream;
         Data mData;
 
-        internal XoverResponse() {
+        internal XoverHeaderProcessor() {
         }
 
         public void xStartProcess() {
-//            mStream = new StreamWriter(@"E:\Test\Spotz\TestXover.txt", false);
+            //            mStream = new StreamWriter(@"E:\Test\Spotz\TestXover.txt", false);
             mData = Data.getInstance;
         }
 
@@ -42,7 +42,7 @@ namespace SpotWPF {
                 if (sProcessHeader(lHeader, lCount, lSpot)) {
                     lSpotOK = true;
                 } else {
-                    lSpotOK=false;
+                    lSpotOK = false;
                     break;
                 }
                 lStart = lEnd + 1;
@@ -151,7 +151,7 @@ namespace SpotWPF {
         }
 
         public void xEndProcess() {
-//            mStream.Close();
+            //            mStream.Close();
         }
     }
 }

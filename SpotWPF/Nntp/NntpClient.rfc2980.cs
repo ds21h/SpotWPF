@@ -26,6 +26,8 @@ namespace Usenet.Nntp
         /// <returns>A multi-line response object containing the headers.</returns>
         public NntpMultiLineResponse Xhdr(string field, NntpArticleRange range) =>
             connection.MultiLineCommand($"XHDR {field} {range}", new MultiLineResponseParser(221));
+        public NntpResponse Xhdr(string field, NntpArticleRange range, IMultiLineProcess pRespProcessor) =>
+            connection.MultiLineRawCommand($"XHDR {field} {range}", pRespProcessor, new ResponseParser(221));
 
         /// <summary>
         /// The <a href="https://tools.ietf.org/html/rfc2980#section-2.6">XHDR</a> 
@@ -44,8 +46,8 @@ namespace Usenet.Nntp
         /// <returns>A multi-line response object containing the overview database information.</returns>
         public NntpMultiLineResponse Xover(NntpArticleRange range) =>
             connection.MultiLineCommand($"XOVER {range}", new MultiLineResponseParser(224));
-        public NntpMultiLineResponse Xover(NntpArticleRange range, XoverResponse pRespProcessor) {
-            return connection.ProcessMultiLineCommand($"XOVER {range}", pRespProcessor, new MultiLineResponseParser(224));
+        public NntpResponse Xover(NntpArticleRange range, IMultiLineProcess pRespProcessor) {
+            return connection.MultiLineRawCommand($"XOVER {range}", pRespProcessor, new ResponseParser(224));
         }
             
 
@@ -55,9 +57,5 @@ namespace Usenet.Nntp
         /// </summary>
         /// <returns>A multi-line response object containing the overview database information.</returns>
         public NntpMultiLineResponse Xover() => connection.MultiLineCommand("XOVER", new MultiLineResponseParser(224));
-
-        internal NntpResponse Xover(IMultiLineProcess pRespProcessor) {
-            return connection.ProcessMultiLineCommand("XOVER", pRespProcessor, new MultiLineResponseParser(224));
-        }
     }
 }

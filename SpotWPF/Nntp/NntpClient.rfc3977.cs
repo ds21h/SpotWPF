@@ -5,6 +5,7 @@ using Usenet.Nntp.Parsers;
 using Usenet.Nntp.Responses;
 using Usenet.Nntp.Writers;
 using Usenet.Util;
+using SpotWPF;
 
 namespace Usenet.Nntp
 {
@@ -136,6 +137,9 @@ namespace Usenet.Nntp
             connection.MultiLineCommand(
                 $"ARTICLE {messageId.ThrowIfNullOrWhiteSpace(nameof(messageId))}", 
                 new ArticleResponseParser(ArticleRequestType.Article));
+        public NntpResponse Article(NntpMessageId messageId, IMultiLineProcess pRespProcessor) {
+            return connection.MultiLineRawCommand($"ARTICLE {messageId.ThrowIfNullOrWhiteSpace(nameof(messageId))}", pRespProcessor, new ArticleProcessResponseParser(ArticleRequestType.Article));
+        }
 
         /// <summary>
         /// The <a href="https://tools.ietf.org/html/rfc3977#section-6.2.1">ARTICLE</a> command 
@@ -208,6 +212,9 @@ namespace Usenet.Nntp
             connection.MultiLineCommand(
                 $"BODY {messageId.ThrowIfNullOrWhiteSpace(nameof(messageId))}", 
                 new ArticleResponseParser(ArticleRequestType.Body));
+        public NntpResponse Body(NntpMessageId messageId, IMultiLineProcess pRespProcessor) {
+            return connection.MultiLineRawCommand($"BODY {messageId.ThrowIfNullOrWhiteSpace(nameof(messageId))}", pRespProcessor, new ArticleProcessResponseParser(ArticleRequestType.Body));
+        }
 
         /// <summary>
         /// The <a href="https://tools.ietf.org/html/rfc3977#section-6.2.3">BODY</a> 

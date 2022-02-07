@@ -24,6 +24,7 @@ namespace SpotWPF {
     public partial class FrmOverview : Window {
         private Data mData;
         private Spots mSpots;
+        private Comments mComments;
 
         private delegate void dUpdateGrid();
         private dUpdateGrid hUpdateGrid;
@@ -40,19 +41,16 @@ namespace SpotWPF {
             lstSpots.DataContext = mSpots;
             hUpdateGrid = new dUpdateGrid(sUpdateGrid);
             mSpots.eDbUpdated += hDbUpdated;
+            mComments = Comments.getInstance;
         }
 
         private void sUpdateGrid() {
-//            lstSpots.IsEnabled = false;
             lstSpots.InvalidateVisual();
-//            lstSpots.DataContext = mSpots;
-//            lstSpots.IsEnabled = true;
             btnRefresh.IsEnabled = true;
         }
 
         private void hDbUpdated(Object pSender, EventArgs pArgs) {
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, hUpdateGrid);
-//            Invoke(hUpdateGrid);
         }
 
         private void lstSpots_SizeChanged(object sender, SizeChangedEventArgs e) {
@@ -79,9 +77,11 @@ namespace SpotWPF {
         private void btnRefresh_Click(object sender, RoutedEventArgs e) {
             Thread lThread;
 
-            btnRefresh.IsEnabled = false;
-            lThread = new Thread(new ThreadStart(mSpots.xRefresh));
-            lThread.Start();
+            mComments.xRefresh();
+
+            //btnRefresh.IsEnabled = false;
+            //lThread = new Thread(new ThreadStart(mSpots.xRefresh));
+            //lThread.Start();
         }
         void ListViewItem_MouseDoubleClick(object pSender, MouseButtonEventArgs e) {
             FrmSpot lFrmSpot;

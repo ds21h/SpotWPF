@@ -52,7 +52,7 @@ namespace Usenet.Nntp
         /// <param name="parser">The multi-line response parser to use.</param>
         /// <returns>A response object of type <typeparamref name="TResponse"/>.</returns>
         TResponse MultiLineCommand<TResponse>(string command, IMultiLineResponseParser<TResponse> parser);
-        TResponse ProcessMultiLineCommand<TResponse>(string command, IMultiLineProcess pRespProcessor, IMultiLineResponseParser<TResponse> parser);
+        TResponse MultiLineRawCommand<TResponse>(string command, IMultiLineProcess pRespProcessor, IResponseParser<TResponse> parser);
 
         /// <summary>
         /// Gets a single-line response from the usenet server.

@@ -9,22 +9,28 @@ using Usenet.Nntp.Responses;
 using System.Collections.Immutable;
 using System.Xml;
 using System.IO;
+using System.IO.Compression;
 
 namespace SpotWPF {
     internal class SpotExt : SpotData {
-        private const string cHtmlStart = "<!DOCTYPE html><html><head><meta charset = \"UTF-8\"></head><body>";
-        private const string cHtmlEnd = "</body></html>";
+        private string mDescrBase;
         private string mDescription;
-        private string mDescrHtml;
         private string mWebsite;
         private int mKey;
         private int mImageWidth;
         private int mImageHeight;
-        private string mImageSegment;
-        private string mNzbSegment;
+        private List<string> mImageSegment;
+        private List<string> mNzbSegments;
+        private string mNzb;
+        private string mImageFile;
 
+        internal event EventHandler eNzbUpdated;
         internal SpotExt(SpotData pSpot) : base(pSpot) {
-            mDescription = "";
+            mDescrBase = "";
+            mImageSegment = new List<string>();
+            mNzbSegments = new List<string>();
+            mNzb = "";
+            mImageFile = "";
         }
 
         internal string xDescription {
@@ -33,9 +39,15 @@ namespace SpotWPF {
             }
         }
 
-        internal string xDescHtml {
+        internal string xNzb {
             get {
-                return mDescrHtml;
+                return mNzb;
+            }
+        }
+
+        internal string xImageFile {
+            get {
+                return mImageFile;
             }
         }
 
@@ -174,7 +186,7 @@ namespace SpotWPF {
                                         break;
                                     }
                                 case "Description": {
-                                        mDescription = lReader.Value;
+                                        mDescrBase = lReader.Value;
                                         break;
                                     }
                                 case "Website": {
@@ -189,10 +201,10 @@ namespace SpotWPF {
                                     }
                                 case "Segment": {
                                         if (lElement[lLevel - 1] == "Image") {
-                                            mImageSegment = lReader.Value;
+                                            mImageSegment.Add(lReader.Value);
                                         } else {
                                             if (lElement[lLevel - 1] == "NZB") {
-                                                mNzbSegment = lReader.Value;
+                                                mNzbSegments.Add(lReader.Value);
                                             }
                                         }
                                         break;
@@ -209,8 +221,85 @@ namespace SpotWPF {
         }
 
         private void sConvertDesc() {
-//            mDescrHtml = cHtmlStart + mDescription.Replace("[br]", "<br>", StringComparison.OrdinalIgnoreCase).Replace("[b]", "<b>", StringComparison.OrdinalIgnoreCase).Replace("[/b]", "</b>", StringComparison.OrdinalIgnoreCase) + cHtmlEnd;
-            mDescrHtml = cHtmlStart + mDescription.Replace("[", "<", StringComparison.Ordinal).Replace("]", ">", StringComparison.Ordinal) + cHtmlEnd;
+            mDescription = mDescrBase.Replace("[", "<", StringComparison.Ordinal).Replace("]", ">", StringComparison.Ordinal);
         }
+
+        internal async Task xGetNZB() {
+            byte[] lLatinNzb;
+            MemoryStream lStreamIn;
+            DeflateStream lDeflate;
+
+            lLatinNzb = sGetBinary(mNzbSegments);
+            lStreamIn = new MemoryStream(lLatinNzb);
+            lDeflate = new DeflateStream(lStreamIn, CompressionMode.Decompress);
+            mNzb = new StreamReader(lDeflate, Encoding.Latin1).ReadToEnd();
+        }
+
+        internal async Task xGetPrv() {
+            byte[] lLatinPrv;
+            StreamWriter lWriter;
+            BinaryWriter lBWriter;
+            string lFileName;
+
+            lFileName = Temp.GetTempFileName();
+            lLatinPrv = sGetBinary(mImageSegment);
+            lWriter = new StreamWriter(lFileName, false, Encoding.GetEncoding(28591));
+            lBWriter = new BinaryWriter(lWriter.BaseStream, Encoding.GetEncoding(28591));
+            lBWriter.Write(lLatinPrv);
+            lWriter.Close();
+            mImageFile = lFileName;
+        }
+
+        private byte[] sGetBinary(List<string> pSegments) {
+            NntpResponse lResponse;
+            NntpClient lClient = new NntpClient(new NntpConnection());
+            RawProcessor lProcessor;
+            StringBuilder lBuilder;
+            List<string> lContent;
+            string lBasicBinary;
+            byte[] lLatinBinary;
+
+            lProcessor = new RawProcessor();
+            lBuilder = new StringBuilder();
+            if (mNzbSegments.Count > 0) {
+                try {
+                    if (lClient.Connect(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
+                        if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
+                            foreach (string bSegment in pSegments) {
+                                lResponse = lClient.Body(new NntpMessageId(bSegment), lProcessor);
+                                if (lResponse.Success) {
+                                    lContent = lProcessor.xLines;
+                                    foreach (string bLine in lContent) {
+                                        lBuilder.Append(bLine);
+                                    }
+                                }
+                            }
+                            lResponse = lClient.Quit();
+                        }
+                    }
+                } catch (Usenet.Exceptions.NntpException pExc) {
+                }
+            }
+
+            lBasicBinary = lBuilder.ToString().Replace("=C", "\n").Replace("=B", "\r").Replace("=A", "\0").Replace("=D", "=");
+            lLatinBinary = Encoding.GetEncoding(28591).GetBytes(lBasicBinary);
+
+            return lLatinBinary;
+        }
+
+
+        internal async Task xPrintSpot() {
+            NntpClient lClient = new NntpClient(new NntpConnection());
+            PrintProcessor lProcessor;
+
+            if (lClient.Connect(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
+                if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
+                    lProcessor = new PrintProcessor(@"E:\Test\Spotz\Article.txt");
+                    lClient.Article(new NntpMessageId(xArticleId), lProcessor);
+                    lClient.Quit();
+                }
+            }
+        }
+
     }
 }

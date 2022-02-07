@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace SpotWPF {
     internal class SpotData {
         private long mArticleNumber;
-        private string mArticleId;
+        private protected string mArticleId;
         private string mPoster;
         private string mTitle;
         private string mTag;

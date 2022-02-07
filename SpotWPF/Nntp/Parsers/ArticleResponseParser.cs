@@ -170,7 +170,7 @@ namespace Usenet.Nntp.Parsers
 
             public Header(string key, string value)
             {
-                Key = key;
+                Key = key.ToUpperInvariant();
                 Value = value;
             }
         }

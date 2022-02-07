@@ -334,7 +334,7 @@ namespace SpotWPF {
                                 lHigh = lGroupResponse.Group.HighWaterMark;
                             }
                             lArticleRange = new NntpArticleRange(lLow, lHigh);
-                            lResponse = lClient.Xover(lArticleRange, new XoverResponse());
+                            lResponse = lClient.Xover(lArticleRange, new XoverHeaderProcessor());
                             if (lResponse.Success) {
                                 Global.gServer.xHighSpotId = lHigh;
                                 mData.xUpdateServer(Global.gServer);

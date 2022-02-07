@@ -70,19 +70,26 @@ namespace Usenet.Nntp
         /// <inheritdoc/>
         public TResponse MultiLineCommand<TResponse>(string command, IMultiLineResponseParser<TResponse> parser) //, bool decompress = false)
         {
+            IEnumerable<string> dataBlock;
+                
             NntpResponse response = Command(command, new ResponseParser());
 
-            IEnumerable<string> dataBlock = parser.IsSuccessResponse(response.Code)
-                ? ReadMultiLineDataBlock()
-                : new string[0];
+            if (parser.IsSuccessResponse(response.Code)) {
+                dataBlock = ReadMultiLineDataBlock();
+            } else {
+                dataBlock = new string[0];
+            }
+            //IEnumerable<string> dataBlock = parser.IsSuccessResponse(response.Code)
+            //    ? ReadMultiLineDataBlock()
+            //    : new string[0];
 
             return parser.Parse(response.Code, response.Message, dataBlock);
         }
-        public TResponse ProcessMultiLineCommand<TResponse>(string command, IMultiLineProcess pRespProcessor, IMultiLineResponseParser<TResponse> parser) //, bool decompress = false)
+        public TResponse MultiLineRawCommand<TResponse>(string command, IMultiLineProcess pRespProcessor, IResponseParser<TResponse> parser) //, bool decompress = false)
         {
             NntpResponse response = Command(command, new ResponseParser());
 
-            if (parser.IsSuccessResponse(response.Code)){
+            if (parser.IsSuccessResponse(response.Code)) {
                 string line;
                 pRespProcessor.xStartProcess();
                 while ((line = reader.ReadLine()) != null) {
@@ -91,7 +98,7 @@ namespace Usenet.Nntp
                 pRespProcessor.xEndProcess();
             }
 
-            return parser.Parse(response.Code, response.Message, null);
+            return parser.Parse(response.Code, response.Message);
         }
 
         /// <inheritdoc/>
