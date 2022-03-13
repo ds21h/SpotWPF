@@ -18,16 +18,17 @@ using Microsoft.Win32;
 using System.IO;
 using System.Windows.Navigation;
 using System.Runtime.InteropServices;
+using Usenet.Nntp;
+using Usenet.Nntp.Models;
+using Usenet.Nntp.Responses;
 
 // https://stackoverflow.com/questions/470222/hosting-and-interacting-with-a-webpage-inside-a-wpf-app
 
 namespace SpotWPF {
     public partial class FrmSpot : Window {
-        private const string cSpotBase = @"E:\Test\Spotz\SpotView.htm";
-        private const string cResourcePath = @"E:\Test\Spotz";
         private const string cFontSize = "18";
-        private SpotExt mSpot;
-        private ScriptingHelper mScriptingHelper;
+        private readonly SpotExt mSpot;
+        private readonly ScriptingHelper mScriptingHelper;
         private bool mNzbDownload;
 
         internal FrmSpot(SpotData pSpot) {
@@ -53,53 +54,43 @@ namespace SpotWPF {
                     lHandler.Invoke(this, new EventArgs());
                 }
             }
-
-            public void ShowMessage(string message) {
-                EventHandler lHandler;
-
-                if (eDownLoadPressed != null) {
-                    lHandler = eDownLoadPressed;
-                    lHandler.Invoke(this, new EventArgs());
-                }
-
-                MessageBox.Show(message);
-            }
         }
 
-        private void sDownloadPressed(object sender, EventArgs e) {
+        private async void sDownloadPressed(object sender, EventArgs e) {
             if (!mNzbDownload) {
-                mNzbDownload=true;
-                sGetNzb();
+                mNzbDownload = true;
+                await sGetNzb().ConfigureAwait(true);
+                mNzbDownload = false;
             }
         }
 
         private async Task sFillScreen() {
-            Task lReadSpot = null;
+            Task lReadSpot;
             string lHtml = null;
             StreamReader lReader;
 
             lReadSpot = mSpot.xInit();
             try {
-                lReader = new StreamReader(cSpotBase);
-                lHtml = await lReader.ReadToEndAsync();
-            } catch (Exception pExc) {
+                lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cSpotBase);
+                lHtml = await lReader.ReadToEndAsync().ConfigureAwait(true);
+            } catch (Exception) {
             }
-            await lReadSpot;
+            await lReadSpot.ConfigureAwait(true);
             if (lHtml == null) {
                 lHtml = "";
             } else {
-                lHtml = lHtml.Replace("[SN:DESC]", mSpot.xDescription).Replace ("[SN:FONTSIZE]", cFontSize).Replace("[SN:PATH]", cResourcePath);
+                lHtml = lHtml.Replace("[SN:DESC]", mSpot.xDescription).Replace ("[SN:FONTSIZE]", cFontSize).Replace("[SN:PATH]", Global.cHomeDir);
             }
             brSpot.NavigateToString(lHtml);
         }
 
         private async Task sGetNzb() {
-            Task lGetNzb = null;
+            Task lGetNzb;
             SaveFileDialog lDialog;
             StreamWriter lStream;
 
             lGetNzb = mSpot.xGetNZB();
-            await lGetNzb;
+            await lGetNzb.ConfigureAwait(true);
             lDialog = new SaveFileDialog();
             lDialog.Filter = "NZB (*.nzb)|*.nzb";
             lDialog.InitialDirectory = KnownFolders.GetPath(KnownFolder.Downloads);
@@ -109,42 +100,130 @@ namespace SpotWPF {
                 lStream.Write(mSpot.xNzb);
                 lStream.Close();
             }
-            mNzbDownload = false;
         }
 
         private async Task sGetPrv() {
-            Task lGetPrv = null;
+            Task lGetPrv;
 
             lGetPrv = mSpot.xGetPrv();
-            await lGetPrv;
+            await lGetPrv.ConfigureAwait(true);
             if (mSpot.xImageFile != string.Empty) {
                 brSpot.InvokeScript("SetImage", mSpot.xImageFile);
             }
         }
 
-        private void btnSpot_Click(object sender, RoutedEventArgs e) {
+        private async void btnSpot_Click(object sender, RoutedEventArgs e) {
             btnSpot.IsEnabled = false;
-            sGetSpot();
-        }
-
-        private async Task sGetSpot() {
-            Task lGetSpot = null;
-
-            lGetSpot = mSpot.xPrintSpot();
-            await lGetSpot;
+            await sGetSpot().ConfigureAwait(true);
             btnSpot.IsEnabled = true;
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e) {
-            sFillScreen();
+        private async Task sGetSpot() {
+            Task lGetSpot;
 
-        }
-        private void sSpotLoadCompleted(object sender, NavigationEventArgs e) {
-            sGetPrv();
+            lGetSpot = mSpot.xPrintSpot();
+            await lGetSpot.ConfigureAwait(false);
         }
 
-        private void btnComment_Click(object sender, RoutedEventArgs e) {
-            brSpot.InvokeScript("AddComment", "<BR>Button Tekst uit AddComment<BR>");
+        private async void Window_Loaded(object sender, RoutedEventArgs e) {
+            await sFillScreen().ConfigureAwait(true);
+        }
+
+        private async void sSpotLoadCompleted(object sender, NavigationEventArgs e) {
+            await sGetPrv().ConfigureAwait(true);
+            await sGetComments().ConfigureAwait(true);
+        }
+
+        private async void btnComment_Click(object sender, RoutedEventArgs e) {
+            List<long> lCommentNumbers;
+            NntpClient lClient = new NntpClient(new NntpConnection());
+            NntpResponse lResponse;
+            NntpGroupResponse lGroupResponse;
+            NntpArticleResponse lArticleResponse;
+            StringBuilder lBuilder;
+            StreamReader lReader;
+            string lHtml;
+
+            if (string.IsNullOrEmpty(Global.gCommentBase)) {
+                try {
+                    lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cCommentBase);
+                    Global.gCommentBase = await lReader.ReadToEndAsync().ConfigureAwait(true);
+                } catch (Exception) {
+                }
+            }
+
+            lCommentNumbers = await Data.getInstance.xGetCommentsAsync(mSpot.xSpotId).ConfigureAwait(true);
+            if (lCommentNumbers.Count > 0) {
+                if (await lClient.ConnectAsync(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL).ConfigureAwait(true)) {
+                    if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
+                        lGroupResponse = lClient.Group(Global.cCommentGroup);
+                        if (lGroupResponse.Success) {
+                            foreach (long bCommentNumber in lCommentNumbers) {
+                                lArticleResponse = lClient.Article(bCommentNumber);
+                                if (lArticleResponse.Success) {
+                                    lBuilder = new StringBuilder();
+                                    foreach (string bLine in lArticleResponse.Article.Body) {
+                                        lBuilder.Append(bLine);
+                                        lBuilder.Append("<BR>");
+                                    }
+                                    lHtml = Global.gCommentBase.Replace("[SN:DESC]", lBuilder.ToString());
+                                    brSpot.InvokeScript("AddComment", lHtml);
+                                }
+                            }
+                        }
+                        lResponse = lClient.Quit();
+                    }
+                }
+            } else {
+                brSpot.InvokeScript("AddComment", "<DIV style='margin - bottom: 20px'>Geen Comments gevonden!</ DIV ><HR><BR>");
+            }
+            brSpot.InvokeScript("HideProgress");
+        }
+
+        private async Task sGetComments() {
+            List<long> lCommentNumbers;
+            NntpClient lClient = new NntpClient(new NntpConnection());
+            NntpResponse lResponse;
+            NntpGroupResponse lGroupResponse;
+            NntpArticleResponse lArticleResponse;
+            StringBuilder lBuilder;
+            StreamReader lReader;
+            string lHtml;
+
+            if (string.IsNullOrEmpty(Global.gCommentBase)) {
+                try {
+                    lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cCommentBase);
+                    Global.gCommentBase = await lReader.ReadToEndAsync().ConfigureAwait(true);
+                } catch (Exception) {
+                }
+            }
+
+            lCommentNumbers = await Data.getInstance.xGetCommentsAsync(mSpot.xSpotId).ConfigureAwait(true);
+            if (lCommentNumbers.Count > 0) {
+                if (await lClient.ConnectAsync(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL).ConfigureAwait(true)) {
+                    if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
+                        lGroupResponse = lClient.Group(Global.cCommentGroup);
+                        if (lGroupResponse.Success) {
+                            foreach (long bCommentNumber in lCommentNumbers) {
+                                lArticleResponse = lClient.Article(bCommentNumber);
+                                if (lArticleResponse.Success) {
+                                    lBuilder = new StringBuilder();
+                                    foreach (string bLine in lArticleResponse.Article.Body) {
+                                        lBuilder.Append(bLine);
+                                        lBuilder.Append("<BR>");
+                                    }
+                                    lHtml = Global.gCommentBase.Replace("[SN:DESC]", lBuilder.ToString());
+                                    brSpot.InvokeScript("AddComment", lHtml);
+                                }
+                            }
+                        }
+                        lResponse = lClient.Quit();
+                    }
+                }
+            } else {
+                brSpot.InvokeScript("AddComment", "<DIV style='margin - bottom: 20px'>Geen Comments gevonden!</ DIV ><HR><BR>");
+            }
+            brSpot.InvokeScript("HideProgress");
         }
     }
 }

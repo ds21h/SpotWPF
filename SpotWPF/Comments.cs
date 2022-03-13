@@ -24,7 +24,6 @@ namespace SpotWPF {
         }
 
         internal void xRefresh() {
-//            NntpMultiLineResponse lMultiResponse;
             NntpResponse lResponse;
             NntpGroupResponse lGroupResponse;
             NntpClient lClient = new NntpClient(new NntpConnection());
@@ -45,25 +44,25 @@ namespace SpotWPF {
                             lLow = Global.gServer.xHighCommentId + 1;
                         }
                         if (lLow <= lGroupResponse.Group.HighWaterMark) {
-                            lHigh = lLow + 5000000;
-                            if (lHigh > lGroupResponse.Group.HighWaterMark) {
-                                lHigh = lGroupResponse.Group.HighWaterMark;
-                            }
+                            lHigh = lGroupResponse.Group.HighWaterMark;
                             lArticleRange = new NntpArticleRange(lLow, lHigh);
-                            lFileName = Temp.GetTempFileName();
-//                            lMultiResponse = lClient.Xhdr("References", lArticleRange);
-                            lResponse = lClient.Xhdr("References", lArticleRange, new CommentsProcessor(lFileName));
+                            if ((lHigh - lLow) > 10000) {
+                                lFileName = Temp.GetTempFileName();
+                            } else {
+                                lFileName = "";
+                            }
+                            lResponse = lClient.Xover(lArticleRange, new XoverCommentsProcessor(lFileName));
                             if (lResponse.Success) {
                                 lSuccess = true;
                                 Global.gServer.xHighCommentId = lHigh;
-//                                mData.xUpdateServer(Global.gServer);
+                                Data.getInstance.xUpdateServer(Global.gServer);
                             }
                         }
                     }
                     lResponse = lClient.Quit();
                 }
             }
-            if (lSuccess) {
+            if (lSuccess && !string.IsNullOrEmpty(lFileName)) {
                 Data.getInstance.xStoreComments(lFileName, Global.cHomeDir + @"\" + Global.cCommentsFormat);
             }
         }

@@ -12,7 +12,7 @@ using System.Collections.Immutable;
 
 namespace SpotWPF {
     internal class Spots : IList<SpotData>, IList {
-        private const int cBlockSize = 1000;
+        private const int cBlockSize = 100;
 
         private Data mData;
         private int mNumberSpots;
@@ -20,11 +20,10 @@ namespace SpotWPF {
         private List<SpotData> mSpotsHigh;
         private int mCurrentBlock;
 
-        internal event EventHandler eDbUpdated;
-
         internal Spots() {
             mData = Data.getInstance;
             sInitPaging();
+            mNumberSpots = 0;   
         }
 
         #region IList<T>, IList
@@ -246,8 +245,12 @@ namespace SpotWPF {
 
         #endregion
 
+        internal async Task xInitSpotsAsync() {
+            sInitPaging();
+            mNumberSpots = await mData.xGetNumberSpotsAsync().ConfigureAwait(false);
+        }
+
         private void sInitPaging() {
-            mNumberSpots = mData.xGetNumberSpots();
             mCurrentBlock = -9;
             mSpotsLow = null;
             mSpotsHigh = null;
@@ -311,7 +314,6 @@ namespace SpotWPF {
         }
 
         internal void xRefresh() {
-            EventHandler lHandler;
             NntpResponse lResponse;
             NntpGroupResponse lGroupResponse;
             NntpClient lClient = new NntpClient(new NntpConnection());
@@ -329,10 +331,7 @@ namespace SpotWPF {
                             lLow = Global.gServer.xHighSpotId + 1;
                         }
                         if (lLow <= lGroupResponse.Group.HighWaterMark) {
-                            lHigh = lLow + 100000;
-                            if (lHigh > lGroupResponse.Group.HighWaterMark) {
-                                lHigh = lGroupResponse.Group.HighWaterMark;
-                            }
+                            lHigh = lGroupResponse.Group.HighWaterMark;
                             lArticleRange = new NntpArticleRange(lLow, lHigh);
                             lResponse = lClient.Xover(lArticleRange, new XoverHeaderProcessor());
                             if (lResponse.Success) {
@@ -340,17 +339,12 @@ namespace SpotWPF {
                                 mData.xUpdateServer(Global.gServer);
                             }
                             sInitPaging();
+                            mNumberSpots = mData.xGetNumberSpots();
                         }
                     }
                     lResponse = lClient.Quit();
                 }
             }
-
-            if (eDbUpdated != null) {
-                lHandler = eDbUpdated;
-                lHandler.Invoke(this, new EventArgs());
-            }
         }
-
     }
 }

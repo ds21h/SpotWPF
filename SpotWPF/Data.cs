@@ -8,7 +8,7 @@ using System.Data.SqlClient;
 
 namespace SpotWPF {
     internal sealed class Data {
-        private static Data mInstance = new Data();
+        private static readonly Data mInstance = new();
 
         static Data() { }
         private Data() { }
@@ -20,6 +20,32 @@ namespace SpotWPF {
         }
 
         private const string cConnStr = "Persist Security Info=False;Integrated Security=SSPI;database=Spotz;server=LAPTOP-E6GEPR5E";
+
+        internal async Task<int> xGetNumberSpotsAsync() {
+            SqlDataReader lRdr;
+            int lNumberSpots = 0;
+
+            using (var lComm = new SqlCommand())
+            using (var lConn = new SqlConnection(cConnStr)) {
+                await lConn.OpenAsync().ConfigureAwait(false);
+                lComm.Connection = lConn;
+                lComm.CommandText = "GetNumberSpots";
+                lComm.CommandType = CommandType.StoredProcedure;
+                try {
+                    lRdr = await lComm.ExecuteReaderAsync().ConfigureAwait(false);
+                    if (lRdr.HasRows) {
+                        if (lRdr.Read()) {
+                            lNumberSpots = lRdr.GetInt32(0);
+                        }
+                    }
+
+                    lRdr.Close();
+                } catch (Exception) {
+                }
+            }
+
+            return lNumberSpots;
+        }
 
         internal int xGetNumberSpots() {
             SqlDataReader lRdr;
@@ -47,57 +73,30 @@ namespace SpotWPF {
             return lNumberSpots;
         }
 
-        internal List<SpotData> xGetSpots(long pMaxSpotNumber) {
-            SqlParameter lParMax;
-            SqlDataReader lRdr;
-            List<SpotData> lSpots;
-            SpotData lSpot;
-            string lArticleId;
-            long lArticleNumber;
-            DateTime lCreated;
-            string lPoster;
-            string lTag;
-            string lTitle;
-            long lSize;
-            int lCategory;
-            string lSubCategories;
+        internal int xSetView(string pFilter) {
+            SqlParameter lFilter;
+            int lResult;
 
-            lSpots = new List<SpotData>();
-            lParMax = SQLHulp.gParInit("@MaxSpotNumber", pMaxSpotNumber);
+            lFilter = SQLHulp.gParInit("@Filter", pFilter);
             using (var lComm = new SqlCommand())
             using (var lConn = new SqlConnection(cConnStr)) {
-                lComm.Parameters.Add(lParMax);
+                lComm.Parameters.Add(lFilter);
                 lConn.Open();
                 lComm.Connection = lConn;
-                lComm.CommandText = "GetSpotsLimited";
+                lComm.CommandText = "SetView";
                 lComm.CommandType = CommandType.StoredProcedure;
                 try {
-                    lRdr = lComm.ExecuteReader();
-                    if (lRdr.HasRows) {
-                        while (lRdr.Read()) {
-                            lArticleId = lRdr.GetString(0);
-                            lArticleNumber = lRdr.GetInt64(1);
-                            lCreated = lRdr.GetDateTime(2);
-                            lPoster = lRdr.GetString(3);
-                            lTag = lRdr.GetString(4);
-                            lTitle = lRdr.GetString(5);
-                            lSize = lRdr.GetInt64(6);
-                            lCategory = lRdr.GetInt32(7);
-                            lSubCategories = lRdr.GetString(8);
-
-                            lSpot = new SpotData(lArticleId, lArticleNumber, lCreated, lPoster, lTag, lTitle, lSize, lCategory, lSubCategories);
-                            lSpots.Add(lSpot);
-                        }
-                    }
-
-                    lRdr.Close();
-                } catch (Exception pExc) {
-                    lSpots = null;
+                    lComm.ExecuteNonQuery();
+                    lResult = 0;
+                } catch (Exception) {
+                    lResult = 9;
                 }
             }
 
-            return lSpots;
+            return lResult;
+
         }
+
         internal List<SpotData> xGetSpotsBlock(int pOffset, int pLimit) {
             SqlParameter lParOffset;
             SqlParameter lParLimit;
@@ -113,6 +112,7 @@ namespace SpotWPF {
             long lSize;
             int lCategory;
             string lSubCategories;
+            bool lEro;
 
             lSpots = new List<SpotData>();
             lParOffset = SQLHulp.gParInit("@Offset", pOffset);
@@ -138,14 +138,19 @@ namespace SpotWPF {
                             lSize = lRdr.GetInt64(6);
                             lCategory = lRdr.GetInt32(7);
                             lSubCategories = lRdr.GetString(8);
+                            if (lRdr.IsDBNull(9)) {
+                                lEro = false;
+                            } else {
+                                lEro = lRdr.GetBoolean(9);
+                            }
 
-                            lSpot = new SpotData(lArticleId, lArticleNumber, lCreated, lPoster, lTag, lTitle, lSize, lCategory, lSubCategories);
+                            lSpot = new SpotData(lArticleId, lArticleNumber, lCreated, lPoster, lTag, lTitle, lSize, lCategory, lSubCategories, lEro);
                             lSpots.Add(lSpot);
                         }
                     }
 
                     lRdr.Close();
-                } catch (Exception pExc) {
+                } catch (Exception) {
                     lSpots = null;
                 }
             }
@@ -165,6 +170,7 @@ namespace SpotWPF {
             string lUserId;
             string lPassWord;
             long lHighSpotId;
+            long lHighCommentId;
 
             lParName = SQLHulp.gParInit("@Name", pName);
             using (var lComm = new SqlCommand())
@@ -186,8 +192,9 @@ namespace SpotWPF {
                             lUserId = lRdr.GetString(5);
                             lPassWord = lRdr.GetString(6);
                             lHighSpotId = lRdr.GetInt64(7);
+                            lHighCommentId = lRdr.GetInt64(8);
 
-                            lServer = new Server(lId, lName, lReader, lPort, lSSL, lUserId, lPassWord, lHighSpotId);
+                            lServer = new Server(lId, lName, lReader, lPort, lSSL, lUserId, lPassWord, lHighSpotId, lHighCommentId);
                         }
                     }
 
@@ -208,6 +215,7 @@ namespace SpotWPF {
             SqlParameter lParUserId;
             SqlParameter lParPassword;
             SqlParameter lParHighSpotId;
+            SqlParameter lParHighCommentId;
             int lResult;
 
             lParId = SQLHulp.gParInit("@Id", pServer.xId);
@@ -218,6 +226,7 @@ namespace SpotWPF {
             lParUserId = SQLHulp.gParInit("@UserId", pServer.xUserId);
             lParPassword = SQLHulp.gParInit("@Password", pServer.xPassWord);
             lParHighSpotId = SQLHulp.gParInit("@HighSpotId", pServer.xHighSpotId);
+            lParHighCommentId = SQLHulp.gParInit("@HighCommentId", pServer.xHighCommentId);
             using (var lComm = new SqlCommand())
             using (var lConn = new SqlConnection(cConnStr)) {
                 lComm.Parameters.Add(lParId);
@@ -228,6 +237,7 @@ namespace SpotWPF {
                 lComm.Parameters.Add(lParUserId);
                 lComm.Parameters.Add(lParPassword);
                 lComm.Parameters.Add(lParHighSpotId);
+                lComm.Parameters.Add(lParHighCommentId);
                 lConn.Open();
                 lComm.Connection = lConn;
                 lComm.CommandText = "UpdateServer";
@@ -253,6 +263,7 @@ namespace SpotWPF {
             SqlParameter lParSize;
             SqlParameter lParCategory;
             SqlParameter lParSubCategories;
+            SqlParameter lParEro;
             int lResult;
 
             lParArticleId = SQLHulp.gParInit("@ArticleId", pSpot.xArticleId);
@@ -264,6 +275,7 @@ namespace SpotWPF {
             lParSize = SQLHulp.gParInit("@Size", pSpot.xSize);
             lParCategory = SQLHulp.gParInit("@Category", pSpot.xCategory);
             lParSubCategories = SQLHulp.gParInit("@SubCategories", pSpot.xSubCategories);
+            lParEro = SQLHulp.gParInit("@Ero", pSpot.xEro);
             using (var lComm = new SqlCommand())
             using (var lConn = new SqlConnection(cConnStr)) {
                 lComm.Parameters.Add(lParArticleId);
@@ -275,6 +287,7 @@ namespace SpotWPF {
                 lComm.Parameters.Add(lParSize);
                 lComm.Parameters.Add(lParCategory);
                 lComm.Parameters.Add(lParSubCategories);
+                lComm.Parameters.Add(lParEro);
                 lConn.Open();
                 lComm.Connection = lConn;
                 lComm.CommandText = "StoreSpot";
@@ -288,6 +301,36 @@ namespace SpotWPF {
                     } else {
                         lResult = 9;
                     }
+                }
+            }
+
+            return lResult;
+
+        }
+
+        internal int xStoreComment(long pArticleNumber, string pSpotId, DateTime pCreated) {
+            SqlParameter lParArticleNumber;
+            SqlParameter lParSpotId;
+            SqlParameter lParCreated;
+            int lResult;
+
+            lParArticleNumber = SQLHulp.gParInit("@ArticleNumber", pArticleNumber);
+            lParSpotId = SQLHulp.gParInit("@SpotId", pSpotId);
+            lParCreated = SQLHulp.gParInit("@Created", pCreated);
+            using (var lComm = new SqlCommand())
+            using (var lConn = new SqlConnection(cConnStr)) {
+                lComm.Parameters.Add(lParArticleNumber);
+                lComm.Parameters.Add(lParSpotId);
+                lComm.Parameters.Add(lParCreated);
+                lConn.Open();
+                lComm.Connection = lConn;
+                lComm.CommandText = "InsertComment";
+                lComm.CommandType = CommandType.StoredProcedure;
+                lResult = 0;
+                try {
+                    lComm.ExecuteNonQuery();
+                } catch (Exception) {
+                    lResult = 9;
                 }
             }
 
@@ -324,6 +367,81 @@ namespace SpotWPF {
 
             return lResult;
 
+        }
+
+        internal async Task<List<long>> xGetCommentsAsync(string pSpotId) {
+            SqlParameter lParSpotId;
+            SqlDataReader lRdr;
+            List<long> lComments;
+            long lCommentNumber;
+
+            lComments = new List<long>();
+            lParSpotId = SQLHulp.gParInit("@SpotId", pSpotId);
+            using (var lComm = new SqlCommand())
+            using (var lConn = new SqlConnection(cConnStr)) {
+                lComm.Parameters.Add(lParSpotId);
+                await lConn.OpenAsync().ConfigureAwait(false);
+                lComm.Connection = lConn;
+                lComm.CommandText = "GetComments";
+                lComm.CommandType = CommandType.StoredProcedure;
+                try {
+                    lRdr = await lComm.ExecuteReaderAsync().ConfigureAwait(false);
+                    if (lRdr.HasRows) {
+                        while (lRdr.Read()) {
+                            lCommentNumber = lRdr.GetInt64(0);
+
+                            lComments.Add(lCommentNumber);
+                        }
+                    }
+
+                    lRdr.Close();
+                } catch (Exception) {
+                    lComments = null;
+                }
+            }
+
+            return lComments;
+        }
+
+        internal List<FilterEntry> xGetFilters() {
+            SqlDataReader lRdr;
+            List<FilterEntry> lFilters;
+            FilterEntry lFilter;
+            int lSeq;
+            string lTitle;
+            string lFilterString;
+
+            lFilters = new List<FilterEntry>();
+            using (var lComm = new SqlCommand())
+            using (var lConn = new SqlConnection(cConnStr)) {
+                lConn.Open();
+                lComm.Connection = lConn;
+                lComm.CommandText = "GetFilters";
+                lComm.CommandType = CommandType.StoredProcedure;
+                try {
+                    lRdr = lComm.ExecuteReader();
+                    if (lRdr.HasRows) {
+                        while (lRdr.Read()) {
+                            lSeq = lRdr.GetInt32(0);
+                            lTitle = lRdr.GetString(1);
+                            if (lRdr.IsDBNull(2)) {
+                                lFilterString = "";
+                            } else { 
+                                lFilterString = lRdr.GetString(2);
+                            }
+
+                            lFilter = new FilterEntry(lSeq, lTitle, lFilterString);
+                            lFilters.Add(lFilter);
+                        }
+                    }
+
+                    lRdr.Close();
+                } catch (Exception) {
+                    lFilters = null;
+                }
+            }
+
+            return lFilters;
         }
     }
 }

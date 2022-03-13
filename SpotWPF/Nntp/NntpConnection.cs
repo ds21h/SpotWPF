@@ -47,9 +47,9 @@ namespace Usenet.Nntp
 
         public async Task<TResponse> ConnectAsync<TResponse>(string hostname, int port, bool useSsl, IResponseParser<TResponse> parser) {
             log.LogInformation("Connecting: {hostname} {port} (Use SSl = {useSsl})", hostname, port, useSsl);
-            await client.ConnectAsync(hostname, port);
+            await client.ConnectAsync(hostname, port).ConfigureAwait(false);
             //            log.LogInformation("Connected: {hostname} {port} (Use SSl = {useSsl})", hostname, port, useSsl);
-            Stream = await GetStreamAsync(hostname, useSsl);
+            Stream = await GetStreamAsync(hostname, useSsl).ConfigureAwait(false);
             //            log.LogInformation("Stream aquired");
             writer = new StreamWriter(Stream, UsenetEncoding.Default);
             reader = new NntpStreamReader(Stream, UsenetEncoding.Default);
@@ -70,15 +70,22 @@ namespace Usenet.Nntp
         /// <inheritdoc/>
         public TResponse MultiLineCommand<TResponse>(string command, IMultiLineResponseParser<TResponse> parser) //, bool decompress = false)
         {
-            IEnumerable<string> dataBlock;
+            //            IEnumerable<string> dataBlock;
+            List<string> dataBlock;
+            string line;
                 
             NntpResponse response = Command(command, new ResponseParser());
 
+            dataBlock = new List<string>();
             if (parser.IsSuccessResponse(response.Code)) {
-                dataBlock = ReadMultiLineDataBlock();
-            } else {
-                dataBlock = new string[0];
+                while ((line = reader.ReadLine()) != null) {
+                    dataBlock.Add(line);
+                }
+//                dataBlock = ReadMultiLineDataBlock();
             }
+            //else {
+            //    dataBlock = new string[0];
+            //}
             //IEnumerable<string> dataBlock = parser.IsSuccessResponse(response.Code)
             //    ? ReadMultiLineDataBlock()
             //    : new string[0];
@@ -170,14 +177,14 @@ namespace Usenet.Nntp
             return new CountingStream(sslStream);
         }
 
-        private IEnumerable<string> ReadMultiLineDataBlock()
-        {
-            string line;
-            while ((line = reader.ReadLine()) != null)
-            {
-                yield return line;
-            }
-        }
+        //private IEnumerable<string> ReadMultiLineDataBlock()
+        //{
+        //    string line;
+        //    while ((line = reader.ReadLine()) != null)
+        //    {
+        //        yield return line;
+        //    }
+        //}
 
         /// <inheritdoc/>
         public void Dispose()

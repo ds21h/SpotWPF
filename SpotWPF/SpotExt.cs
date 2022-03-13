@@ -19,18 +19,23 @@ namespace SpotWPF {
         private int mKey;
         private int mImageWidth;
         private int mImageHeight;
-        private List<string> mImageSegment;
-        private List<string> mNzbSegments;
+        private readonly List<string> mImageSegment;
+        private readonly List<string> mNzbSegments;
         private string mNzb;
         private string mImageFile;
 
-        internal event EventHandler eNzbUpdated;
         internal SpotExt(SpotData pSpot) : base(pSpot) {
             mDescrBase = "";
             mImageSegment = new List<string>();
             mNzbSegments = new List<string>();
             mNzb = "";
             mImageFile = "";
+        }
+
+        internal string xSpotId {
+            get {
+                return "<" + mArticleId + ">";
+            }
         }
 
         internal string xDescription {
@@ -52,16 +57,16 @@ namespace SpotWPF {
         }
 
         internal async Task xInit() {
-            sGetSpot();
+            await sGetSpot();
             sConvertDesc();
         }
 
-        private void sGetSpot() {
+        private async Task sGetSpot() {
             NntpResponse lResponse;
             NntpArticleResponse lArticleResponse;
             NntpClient lClient = new NntpClient(new NntpConnection());
 
-            if (lClient.Connect(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
+            if (await lClient.ConnectAsync(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
                 if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
                     lArticleResponse = lClient.Head(new NntpMessageId(xArticleId));
                     if (lArticleResponse.Success) {
@@ -228,11 +233,13 @@ namespace SpotWPF {
             byte[] lLatinNzb;
             MemoryStream lStreamIn;
             DeflateStream lDeflate;
+            StreamReader lReader;
 
-            lLatinNzb = sGetBinary(mNzbSegments);
+            lLatinNzb = await sGetBinary(mNzbSegments).ConfigureAwait(false);
             lStreamIn = new MemoryStream(lLatinNzb);
             lDeflate = new DeflateStream(lStreamIn, CompressionMode.Decompress);
-            mNzb = new StreamReader(lDeflate, Encoding.Latin1).ReadToEnd();
+            lReader = new StreamReader(lDeflate, Encoding.Latin1);
+            mNzb = await lReader.ReadToEndAsync().ConfigureAwait(false);
         }
 
         internal async Task xGetPrv() {
@@ -242,7 +249,7 @@ namespace SpotWPF {
             string lFileName;
 
             lFileName = Temp.GetTempFileName();
-            lLatinPrv = sGetBinary(mImageSegment);
+            lLatinPrv = await sGetBinary(mImageSegment);
             lWriter = new StreamWriter(lFileName, false, Encoding.GetEncoding(28591));
             lBWriter = new BinaryWriter(lWriter.BaseStream, Encoding.GetEncoding(28591));
             lBWriter.Write(lLatinPrv);
@@ -250,7 +257,7 @@ namespace SpotWPF {
             mImageFile = lFileName;
         }
 
-        private byte[] sGetBinary(List<string> pSegments) {
+        private async Task<byte[]> sGetBinary(List<string> pSegments) {
             NntpResponse lResponse;
             NntpClient lClient = new NntpClient(new NntpConnection());
             RawProcessor lProcessor;
@@ -263,7 +270,7 @@ namespace SpotWPF {
             lBuilder = new StringBuilder();
             if (mNzbSegments.Count > 0) {
                 try {
-                    if (lClient.Connect(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
+                    if (await lClient.ConnectAsync(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
                         if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
                             foreach (string bSegment in pSegments) {
                                 lResponse = lClient.Body(new NntpMessageId(bSegment), lProcessor);
@@ -277,7 +284,7 @@ namespace SpotWPF {
                             lResponse = lClient.Quit();
                         }
                     }
-                } catch (Usenet.Exceptions.NntpException pExc) {
+                } catch (Usenet.Exceptions.NntpException) {
                 }
             }
 
@@ -287,12 +294,11 @@ namespace SpotWPF {
             return lLatinBinary;
         }
 
-
         internal async Task xPrintSpot() {
             NntpClient lClient = new NntpClient(new NntpConnection());
             PrintProcessor lProcessor;
 
-            if (lClient.Connect(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
+            if (await lClient.ConnectAsync(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
                 if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
                     lProcessor = new PrintProcessor(@"E:\Test\Spotz\Article.txt");
                     lClient.Article(new NntpMessageId(xArticleId), lProcessor);

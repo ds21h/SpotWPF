@@ -22,12 +22,12 @@ namespace SpotWPF {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class FrmOverview : Window {
-        private Data mData;
-        private Spots mSpots;
-        private Comments mComments;
-
-        private delegate void dUpdateGrid();
-        private dUpdateGrid hUpdateGrid;
+        private readonly Data mData;
+        private readonly Spots mSpots;
+        private readonly Comments mComments;
+        private int mFilter;
+        private bool mFrmInit;
+        private List<FilterEntry> mFilters;
 
         public FrmOverview() {
             ILoggerFactory lFactory;
@@ -35,22 +35,15 @@ namespace SpotWPF {
             InitializeComponent();
             lFactory = LoggerFactory.Create(builder => builder.AddDebug());
             Usenet.Logger.Factory = lFactory;
+            mFrmInit = false;
+            mFilter = -1;
             mData = Data.getInstance;
             Global.gServer = mData.xGetServer("I-telligent SSL");
             mSpots = new Spots();
-            lstSpots.DataContext = mSpots;
-            hUpdateGrid = new dUpdateGrid(sUpdateGrid);
-            mSpots.eDbUpdated += hDbUpdated;
             mComments = Comments.getInstance;
-        }
-
-        private void sUpdateGrid() {
-            lstSpots.InvalidateVisual();
-            btnRefresh.IsEnabled = true;
-        }
-
-        private void hDbUpdated(Object pSender, EventArgs pArgs) {
-            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, hUpdateGrid);
+            mFilters = mData.xGetFilters();
+            cmbFilter.ItemsSource = mFilters;
+            cmbFilter.DisplayMemberPath = "xTitle";
         }
 
         private void lstSpots_SizeChanged(object sender, SizeChangedEventArgs e) {
@@ -64,25 +57,47 @@ namespace SpotWPF {
                 lWorkWidth = lstSpots.ActualWidth - SystemParameters.VerticalScrollBarWidth - lstSpots.Margin.Left - lstSpots.Margin.Right;
                 for (lColumnCount = 0; lColumnCount < lGridView.Columns.Count; lColumnCount++) {
                     if (lColumnCount != cColumnNumber) {
-                        lWorkWidth = lWorkWidth - lGridView.Columns[lColumnCount].ActualWidth;
+                        lWorkWidth -= lGridView.Columns[lColumnCount].ActualWidth;
                     }
                 }
                 lGridView.Columns[cColumnNumber].Width = lWorkWidth;
             }
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e) {
+        private async void Window_Loaded(object sender, RoutedEventArgs e) {
+            sInitFilter();
+            await mSpots.xInitSpotsAsync();
+            lstSpots.DataContext = mSpots;
+            mFrmInit = true;
         }
 
-        private void btnRefresh_Click(object sender, RoutedEventArgs e) {
-            Thread lThread;
+        private void sInitFilter() {
+            int lFilter;
+            FilterEntry lEntry;
 
-            mComments.xRefresh();
-
-            //btnRefresh.IsEnabled = false;
-            //lThread = new Thread(new ThreadStart(mSpots.xRefresh));
-            //lThread.Start();
+            lFilter = cmbFilter.SelectedIndex;
+            if (lFilter >= 0 && lFilter != mFilter) {
+                lEntry = mFilters[lFilter];
+                mData.xSetView(lEntry.xFilterString);
+                mFilter = lFilter;
+            }
         }
+
+        private async void btnRefresh_Click(object sender, RoutedEventArgs e) {
+            Task lRefreshSpots;
+            Task lRefreshComments;
+
+            btnRefresh.IsEnabled = false;
+            lRefreshSpots = Task.Run(() => mSpots.xRefresh());
+            lRefreshComments = Task.Run(() => mComments.xRefresh());
+            await lRefreshSpots;
+            lstSpots.DataContext = null;
+            lstSpots.InvalidateVisual();
+            lstSpots.DataContext = mSpots;
+            await lRefreshComments;
+            btnRefresh.IsEnabled = true;
+        }
+
         void ListViewItem_MouseDoubleClick(object pSender, MouseButtonEventArgs e) {
             FrmSpot lFrmSpot;
             ListViewItem lItem;
@@ -93,6 +108,19 @@ namespace SpotWPF {
             if (lSpot != null) {
                 lFrmSpot = new FrmSpot(lSpot);
                 lFrmSpot.ShowDialog();
+            }
+        }
+
+        private async void cmbFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            if (mFrmInit) {
+                if (cmbFilter.SelectedIndex >= 0 && cmbFilter.SelectedIndex != mFilter) {
+                    lstSpots.DataContext = null;
+                    lstSpots.InvalidateVisual();
+                    sInitFilter();
+                    await mSpots.xInitSpotsAsync();
+                    lstSpots.DataContext = mSpots;
+                    lstSpots.DataContext = mSpots;
+                }
             }
         }
     }

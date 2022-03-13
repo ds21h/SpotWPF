@@ -82,7 +82,7 @@ namespace SpotWPF {
             SqlParameter gParInitRet = default;
             var lPar = new SqlParameter();
             lPar.ParameterName = pNaam;
-            lPar.SqlDbType = SqlDbType.DateTime;
+            lPar.SqlDbType = SqlDbType.SmallDateTime;
             lPar.Value = pWaarde;
             gParInitRet = lPar;
             return gParInitRet;

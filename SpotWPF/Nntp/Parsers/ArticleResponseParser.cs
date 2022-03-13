@@ -46,8 +46,7 @@ namespace Usenet.Nntp.Parsers
 
         public bool IsSuccessResponse(int code) => code == successCode;
 
-        public NntpArticleResponse Parse(int code, string message, IEnumerable<string> dataBlock)
-        {
+        public NntpArticleResponse Parse(int code, string message, IEnumerable<string> dataBlock) { 
             if (!IsSuccessResponse(code))
             {
                 return new NntpArticleResponse(code, message, false, null);
