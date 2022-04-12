@@ -14,9 +14,10 @@ namespace SpotWPF {
         private string mUserId;
         private string mPassWord;
         private long mHighSpotId;
+        private long mHighSeenId;
         private long mHighCommentId;
 
-        internal Server(int pId, string pName, string pReader, int pPort, bool pSSL, string pUserId, string pPassWord, long pHighSpotId, long pHighCommentId) {
+        internal Server(int pId, string pName, string pReader, int pPort, bool pSSL, string pUserId, string pPassWord, long pHighSpotId, long pHighSeenId, long pHighCommentId) {
             mId = pId;
             mName = pName;
             mReader = pReader;
@@ -25,6 +26,7 @@ namespace SpotWPF {
             mUserId = pUserId;
             mPassWord = pPassWord;
             mHighSpotId = pHighSpotId;
+            mHighSeenId = pHighSeenId;
             mHighCommentId = pHighCommentId;
         }
 
@@ -74,8 +76,24 @@ namespace SpotWPF {
             get {
                 return mHighSpotId;
             }
+            //set {
+            //    mHighSpotId = value;
+            //}
+        }
+
+        internal void xSetHighSpotId(long pHighSpotId, bool pUpdateSeen) {
+            if (pUpdateSeen) { 
+                mHighSeenId = mHighSpotId;
+            }
+            mHighSpotId = pHighSpotId;
+        }
+
+        internal long xHighSeenId {
+            get {
+                return mHighSeenId;
+            }
             set {
-                mHighSpotId = value;
+                mHighSeenId = value;
             }
         }
 

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace SpotWPF {
     internal class SpotData {
-        private static string[] cEroCats = {"d23", "d24", "d25", "d26", "d72", "d73", "d74", "d75", "z03"};
         private long mArticleNumber;
         private protected string mArticleId;
         private string mPoster;
@@ -15,8 +14,13 @@ namespace SpotWPF {
         private DateTime mCreated;
         private long mSize;
         private int mCategory;
-        private List<string> mSubCategories;
+        private int mSubA;
+        private List<int> mSubB;
+        private List<int> mSubC;
+        private List<int> mSubD;
+        private int mSubZ;
         private bool mEro;
+        private string mFormat;
 
         internal SpotData() {
             mArticleNumber = 0;
@@ -27,64 +31,99 @@ namespace SpotWPF {
             mCreated = DateTime.MinValue;
             mSize = 0;
             mCategory = 0;
-            mSubCategories = new List<string>();
+            mSubA = 0;
+            mSubB = new List<int>();
+            mSubC = new List<int>();
+            mSubD = new List<int>();
+            mSubZ = 0;
             mEro = false;
+            mFormat = "";
         }
 
         private protected SpotData(SpotData pSpot) {
             mArticleNumber = pSpot.mArticleNumber;
-            mArticleId=pSpot.mArticleId;
-            mPoster=pSpot.mPoster;
+            mArticleId = pSpot.mArticleId;
+            mPoster = pSpot.mPoster;
             mTitle = pSpot.mTitle;
             mTag = pSpot.mTag;
             mCreated = pSpot.mCreated;
             mSize = pSpot.mSize;
             mCategory = pSpot.mCategory;
-            mSubCategories = new List<string>();
-            foreach (var bSub in pSpot.mSubCategories) {
-                mSubCategories.Add(bSub);
+            mSubA = pSpot.mSubA;
+            mSubB = new List<int>();
+            foreach (int bSubCat in pSpot.mSubB) {
+                mSubB.Add(bSubCat);
             }
+            mSubC = new List<int>();
+            foreach (int bSubCat in pSpot.mSubC) {
+                mSubC.Add(bSubCat);
+            }
+            mSubD = new List<int>();
+            foreach (int bSubCat in pSpot.mSubD) {
+                mSubD.Add(bSubCat);
+            }
+            mSubZ = pSpot.mSubZ;
             mEro = pSpot.mEro;
+            mFormat = pSpot.mFormat;
         }
 
         internal SpotData(string pArticleId, long pArticleNumber, DateTime pCreated, string pPoster, string pTag, string pTitle, long pSize, int pCategory, string pSubCategories, bool pEro) {
             int lStart;
-            int lStep;
-//            DateTimeOffset lDate;
+            string lSubStr;
+            int lSubCat;
 
             mArticleId = pArticleId;
             mArticleNumber = pArticleNumber;
-
             mCreated = pCreated;
             mPoster = pPoster;
             mTitle = pTitle;
             mTag = pTag;
             mSize = pSize;
             mCategory = pCategory;
-            mSubCategories = new List<string>();
+            mSubA = 0;
+            mSubB = new List<int>();
+            mSubC = new List<int>();
+            mSubD = new List<int>();
+            mSubZ = 0;
             lStart = 0;
-            if (pSubCategories.Length > 3) {
-                if (pSubCategories[3] == ' ') {
-                    lStep = 4;
-                } else {
-                    lStep = 3;
-                }
-            } else {
-                lStep = 3;
-            }
             try {
                 while (lStart < pSubCategories.Length) {
                     if (lStart > pSubCategories.Length - 3) {
-                        mSubCategories.Add(pSubCategories.Substring(lStart));
+                        lSubStr = pSubCategories.Substring(lStart);
                     } else {
-                        mSubCategories.Add(pSubCategories.Substring(lStart, 3));
+                        lSubStr = pSubCategories.Substring(lStart, 3);
+                    }
+                    if (int.TryParse(lSubStr.Substring(1), out lSubCat)) {
+                        switch (lSubStr[0]) {
+                            case 'a': {
+                                    mSubA = lSubCat;
+                                    break;
+                                }
+                            case 'b': {
+                                    mSubB.Add(lSubCat);
+                                    break;
+                                }
+                            case 'c': {
+                                    mSubC.Add(lSubCat);
+                                    break;
+                                }
+                            case 'd': {
+                                    mSubD.Add(lSubCat);
+                                    break;
+                                }
+                            case 'z': {
+                                    mSubZ = lSubCat;
+                                    break;
+                                }
+                        }
                     }
 
-                    lStart += lStep;
+                    lStart += 4;
                 }
             } catch (Exception) {
             }
             mEro = pEro;
+            mFormat = "";
         }
 
         public long xArticleNumber {
@@ -93,6 +132,63 @@ namespace SpotWPF {
             }
             set {
                 mArticleNumber = value;
+            }
+        }
+
+        public string xFormat {
+            get {
+                if (mFormat == "") {
+                    mFormat = SpotCoding.xFormat(mCategory, mSubA);
+                }
+                return mFormat;
+            }
+        }
+
+        public string xType {
+            get {
+                string lResult;
+
+                switch (mCategory) {
+                    default: {
+                            if (mSubD.Count > 0) {
+                                lResult = SpotCoding.xTypeImage(mSubD[0]);
+                            } else {
+                                lResult = "--";
+                            }
+                            break;
+                        }
+                    case 2: {
+                            if (mSubD.Count > 0) {
+                                lResult = SpotCoding.xTypeSound(mSubD[0]);
+                            } else {
+                                lResult = "--";
+                            }
+                            break;
+                        }
+                    case 3: {
+                            if (mSubC.Count > 0) {
+                                lResult = SpotCoding.xTypeGames(mSubC[0]);
+                            } else {
+                                lResult = "--";
+                            }
+                            break;
+                        }
+                    case 4: {
+                            if (mSubB.Count > 0) {
+                                lResult = SpotCoding.xTypeApp(mSubB[0]);
+                            } else {
+                                lResult = "--";
+                            }
+                            break;
+                        }
+                }
+                return lResult;
+            }
+        }
+
+        public bool xNew {
+            get {
+                return (mArticleNumber > Global.gServer.xHighSeenId);
             }
         }
 
@@ -105,7 +201,7 @@ namespace SpotWPF {
             }
         }
 
-        internal string xPoster {
+        public string xPoster {
             get {
                 return mPoster;
             }
@@ -156,6 +252,32 @@ namespace SpotWPF {
             }
         }
 
+        internal string xSizeStr {
+            get {
+                float lSize;
+                string lResult;
+
+                if (mSize < 1024) {
+                    lResult = mSize.ToString() + " B";
+                } else {
+                    lSize = mSize / 1024f;
+                    if (lSize < 1024f) {
+                        lResult = lSize.ToString("###0.00") + " KB";
+                    } else {
+                        lSize = lSize / 1024f;
+                        if (lSize < 1024f) {
+                            lResult = lSize.ToString("###0.00") + " MB";
+                        } else {
+                            lSize = lSize / 1024f;
+                            lResult = lSize.ToString("###0.00") + " GB";
+                        }
+
+                    }
+                }
+                return lResult;
+            }
+        }
+
         internal int xCategory {
             get {
                 return mCategory;
@@ -166,10 +288,46 @@ namespace SpotWPF {
         }
 
         internal void xAddSubCategory(string pSubCat) {
-            mSubCategories.Add(pSubCat);
-            if (mCategory == 1) {
-                if (cEroCats.Contains(pSubCat)) {
-                    mEro = true;
+            string lSubStr;
+            int lSubCat;
+
+            lSubStr = pSubCat.ToLower();
+            if (int.TryParse(lSubStr.Substring(1), out lSubCat)) {
+                if (mCategory == 1) {
+                    if (SpotCoding.xIsEroCat(lSubStr)) {
+                        mCategory = 9;
+                        mEro = true;
+                    } else {
+                        if (SpotCoding.xIsEbookCat(lSubStr)) {
+                            mCategory = 5;
+                        } else {
+                            if (SpotCoding.xIsSerialsCat(lSubStr)) {
+                                mCategory = 6;
+                            }
+                        }
+                    }
+                }
+                switch (lSubStr[0]) {
+                    case 'a': {
+                            mSubA = lSubCat;
+                            break;
+                        }
+                    case 'b': {
+                            mSubB.Add(lSubCat);
+                            break;
+                        }
+                    case 'c': {
+                            mSubC.Add(lSubCat);
+                            break;
+                        }
+                    case 'd': {
+                            mSubD.Add(lSubCat);
+                            break;
+                        }
+                    case 'z': {
+                            mSubZ = lSubCat;
+                            break;
+                        }
                 }
             }
         }
@@ -177,19 +335,49 @@ namespace SpotWPF {
         internal string xSubCategories {
             get {
                 StringBuilder lResult;
-                bool lFirst;
 
                 lResult = new StringBuilder();
-                lFirst = true;
-                foreach (string bSubCat in mSubCategories) {
-                    if (lFirst) {
-                        lFirst = false;
-                    } else {
-                        lResult.Append(' ');
-                    }
-                    lResult.Append(bSubCat);
+                lResult.Append('a');
+                lResult.Append(mSubA.ToString("00"));
+                foreach (int bSubCat in mSubB) {
+                    lResult.Append(" b");
+                    lResult.Append(bSubCat.ToString("00"));
                 }
+                foreach (int bSubCat in mSubC) {
+                    lResult.Append(" c");
+                    lResult.Append(bSubCat.ToString("00"));
+                }
+                foreach (int bSubCat in mSubD) {
+                    lResult.Append(" d");
+                    lResult.Append(bSubCat.ToString("00"));
+                }
+                lResult.Append(" z");
+                lResult.Append(mSubZ.ToString("00"));
                 return lResult.ToString();
+            }
+        }
+
+        internal int xSubA {
+            get {
+                return mSubA;
+            }
+        }
+
+        internal List<int> xSubB {
+            get {
+                return mSubB;
+            }
+        }
+
+        internal List<int> xSubC {
+            get {
+                return mSubC;
+            }
+        }
+
+        internal List<int> xSubD {
+            get {
+                return mSubD;
             }
         }
 

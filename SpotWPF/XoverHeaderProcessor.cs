@@ -7,31 +7,52 @@ using System.Threading.Tasks;
 namespace SpotWPF {
     internal class XoverHeaderProcessor : IMultiLineProcess {
         //        private StreamWriter mStream;
-        Data mData;
+        private readonly string cDispose = "DISPOSE ";
+        private Data mData;
         private DateTimeOffset mMinDate;
+        private List<string> mDispose;
 
         internal XoverHeaderProcessor() {
+            mDispose = new List<string>();
+        }
+
+        internal List<string> xDispose {
+            get {
+                return mDispose;
+            }
         }
 
         public void xStartProcess() {
             //            mStream = new StreamWriter(@"E:\Test\Spotz\TestXover.txt", false);
             mData = Data.getInstance;
             mMinDate = DateTimeOffset.Now.AddDays(-Global.cMaxAge);
+            mDispose.Clear();
         }
 
         public void xProcessLine(string pLine) {
             SpotData lSpot;
             string[] lHeaders;
+            string lDispose;
+            int lIndex;
 
             lSpot = new SpotData();
             lHeaders = pLine.Split('\t');
             if (lHeaders.Length >= 8) {
                 if (sCheckDate(lHeaders[3])) {
-                    if (sProcessArticleNumber(lHeaders[0], lSpot)) {
-                        if (sProcessSubject(lHeaders[1], lSpot)) {
-                            if (sProcessAuthor(lHeaders[2], lSpot)) {
-                                if (sProcessMessageId(lHeaders[4], lSpot)) {
-                                    mData.xStoreSpot(lSpot);
+                    if (lHeaders[1].StartsWith(cDispose)) {
+                        lDispose = lHeaders[1].Substring(cDispose.Length).Trim();
+                        lIndex = lDispose.IndexOf(' ');
+                        if (lIndex >= 0) {
+                            lDispose = lDispose.Substring(0, lIndex);
+                        }
+                        mDispose.Add(lDispose);
+                    } else {
+                        if (sProcessArticleNumber(lHeaders[0], lSpot)) {
+                            if (sProcessSubject(lHeaders[1], lSpot)) {
+                                if (sProcessAuthor(lHeaders[2], lSpot)) {
+                                    if (sProcessMessageId(lHeaders[4], lSpot)) {
+                                        mData.xStoreSpot(lSpot);
+                                    }
                                 }
                             }
                         }

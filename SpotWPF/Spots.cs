@@ -313,13 +313,15 @@ namespace SpotWPF {
             return mData.xGetSpotsBlock(pBlock * cBlockSize, cBlockSize);
         }
 
-        internal void xRefresh() {
+        internal void xRefresh(bool pUpdate) {
             NntpResponse lResponse;
             NntpGroupResponse lGroupResponse;
             NntpClient lClient = new NntpClient(new NntpConnection());
             long lLow;
             long lHigh;
             NntpArticleRange lArticleRange;
+            XoverHeaderProcessor lProcessor;
+            List<string> lDispose = null;
 
             if (lClient.Connect(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
                 if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
@@ -333,10 +335,17 @@ namespace SpotWPF {
                         if (lLow <= lGroupResponse.Group.HighWaterMark) {
                             lHigh = lGroupResponse.Group.HighWaterMark;
                             lArticleRange = new NntpArticleRange(lLow, lHigh);
-                            lResponse = lClient.Xover(lArticleRange, new XoverHeaderProcessor());
+                            lProcessor = new XoverHeaderProcessor();
+                            lResponse = lClient.Xover(lArticleRange, lProcessor);
                             if (lResponse.Success) {
-                                Global.gServer.xHighSpotId = lHigh;
+                                lDispose = lProcessor.xDispose;
+                                Global.gServer.xSetHighSpotId(lHigh, pUpdate);
                                 mData.xUpdateServer(Global.gServer);
+                            }
+                            if (lDispose != null) {
+                                foreach (var bDispose in lDispose) {
+                                    mData.xDeleteSpot(bDispose);
+                                }
                             }
                             sInitPaging();
                             mNumberSpots = mData.xGetNumberSpots();
@@ -345,6 +354,19 @@ namespace SpotWPF {
                     lResponse = lClient.Quit();
                 }
             }
+        }
+
+        internal void xGetSpotRaw(string pMessageId) {
+            NntpResponse lResponse;
+            NntpClient lClient = new NntpClient(new NntpConnection());
+
+            if (lClient.Connect(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
+                if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
+                    lResponse = lClient.Article(new NntpMessageId(pMessageId), new RawProcessor());
+                    lResponse = lClient.Quit();
+                }
+            }
+
         }
     }
 }

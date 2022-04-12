@@ -16,24 +16,63 @@
             <Setter Property="ListView.View">
                 <Setter.Value>
                     <GridView>
-                        <GridViewColumn Header="Number" Width="100">
+                        <GridViewColumn Header="Format" Width="60">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding xArticleNumber}"/>
+                                    <TextBlock x:Name="tFormat" Text="{Binding xFormat}"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Path=xNew}" Value="true">
+                                            <Setter TargetName="tFormat" Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Header="Title" Width="Auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding xTitle}"/>
+                                    <TextBlock x:Name="tTitle" Text="{Binding xTitle}"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Path=xNew}" Value="true">
+                                            <Setter TargetName="tTitle" Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Type" Width="90">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock x:Name="tType" Text="{Binding xType}"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Path=xNew}" Value="true">
+                                            <Setter TargetName="tType" Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Spotter" Width="110">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock x:Name="tPoster" Text="{Binding xPoster}"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Path=xNew}" Value="true">
+                                            <Setter TargetName="tPoster" Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Header="Date" Width="150">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding xCreatedLocalString}"/>
+                                    <TextBlock x:Name="tCreated" Text="{Binding xCreatedLocalString}"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Path=xNew}" Value="true">
+                                            <Setter TargetName="tCreated" Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -53,14 +92,15 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ComboBox x:Name="cmbFilter" Grid.Row="0" Margin="5" HorizontalAlignment="Left" IsReadOnly="True" SelectedIndex="0" SelectionChanged="cmbFilter_SelectionChanged">
-<!--            <ComboBoxItem Content="Unfiltered"/>
-            <ComboBoxItem Content="Ero"/>
-            <ComboBoxItem Content="Non Ero"/> -->
+        <ComboBox x:Name="cmbFilter" Grid.Row="0" Margin="5" HorizontalAlignment="Left" SelectedIndex="0" SelectionChanged="cmbFilter_SelectionChanged" IsReadOnly="True">
         </ComboBox>
+        <TextBox x:Name="txtSearch" Grid.Row="0" HorizontalAlignment="Left" Margin="90,0,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Width="120"/>
+        <Button x:Name="btnSearch" Grid.Row="0" Content="Search" HorizontalAlignment="Left" Margin="215,0,0,0" VerticalAlignment="Center" Click="btnSearch_Click"/>
         <ListView x:Name="lstSpots" Grid.Row="1" Margin="5" Style="{DynamicResource lvStyle}" ItemContainerStyle="{StaticResource lvItemStyle}" SizeChanged="lstSpots_SizeChanged" SelectionMode="Single">
         </ListView>
         <Button x:Name="btnRefresh" Content="Refresh" HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center" Grid.Row="2" Click="btnRefresh_Click"/>
+        <Button x:Name="btnRaw" Content="Raw" HorizontalAlignment="Right" Margin="0,0,15,0" Grid.Row="2" VerticalAlignment="Center" Click="btnRaw_Click"/>
+        <CheckBox x:Name="chkUpdate" Content="Update New" HorizontalAlignment="Left" Margin="60,0,0,0" Grid.Row="2" VerticalAlignment="Center" IsChecked="True"/>
 
     </Grid>
 </Window>

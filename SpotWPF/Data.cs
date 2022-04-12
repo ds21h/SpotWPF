@@ -158,6 +158,29 @@ namespace SpotWPF {
             return lSpots;
         }
 
+        internal int xDeleteSpot(string pArticleId) {
+            SqlParameter lArticleId;
+            int lResult;
+
+            lArticleId = SQLHulp.gParInit("@ArticleId", pArticleId);
+            using (var lComm = new SqlCommand())
+            using (var lConn = new SqlConnection(cConnStr)) {
+                lComm.Parameters.Add(lArticleId);
+                lConn.Open();
+                lComm.Connection = lConn;
+                lComm.CommandText = "DeleteSpot";
+                lComm.CommandType = CommandType.StoredProcedure;
+                try {
+                    lComm.ExecuteNonQuery();
+                    lResult = 0;
+                } catch (Exception) {
+                    lResult = 9;
+                }
+            }
+
+            return lResult;
+        }
+
         internal Server xGetServer(string pName) {
             SqlParameter lParName;
             SqlDataReader lRdr;
@@ -170,6 +193,7 @@ namespace SpotWPF {
             string lUserId;
             string lPassWord;
             long lHighSpotId;
+            long lHighSeenId;
             long lHighCommentId;
 
             lParName = SQLHulp.gParInit("@Name", pName);
@@ -192,9 +216,10 @@ namespace SpotWPF {
                             lUserId = lRdr.GetString(5);
                             lPassWord = lRdr.GetString(6);
                             lHighSpotId = lRdr.GetInt64(7);
-                            lHighCommentId = lRdr.GetInt64(8);
+                            lHighSeenId = lRdr.GetInt64(8);
+                            lHighCommentId = lRdr.GetInt64(9);
 
-                            lServer = new Server(lId, lName, lReader, lPort, lSSL, lUserId, lPassWord, lHighSpotId, lHighCommentId);
+                            lServer = new Server(lId, lName, lReader, lPort, lSSL, lUserId, lPassWord, lHighSpotId, lHighSeenId, lHighCommentId);
                         }
                     }
 
@@ -215,6 +240,7 @@ namespace SpotWPF {
             SqlParameter lParUserId;
             SqlParameter lParPassword;
             SqlParameter lParHighSpotId;
+            SqlParameter lParHighSeenId;
             SqlParameter lParHighCommentId;
             int lResult;
 
@@ -226,6 +252,7 @@ namespace SpotWPF {
             lParUserId = SQLHulp.gParInit("@UserId", pServer.xUserId);
             lParPassword = SQLHulp.gParInit("@Password", pServer.xPassWord);
             lParHighSpotId = SQLHulp.gParInit("@HighSpotId", pServer.xHighSpotId);
+            lParHighSeenId = SQLHulp.gParInit("@HighSeenId", pServer.xHighSeenId);
             lParHighCommentId = SQLHulp.gParInit("@HighCommentId", pServer.xHighCommentId);
             using (var lComm = new SqlCommand())
             using (var lConn = new SqlConnection(cConnStr)) {
@@ -237,6 +264,7 @@ namespace SpotWPF {
                 lComm.Parameters.Add(lParUserId);
                 lComm.Parameters.Add(lParPassword);
                 lComm.Parameters.Add(lParHighSpotId);
+                lComm.Parameters.Add(lParHighSeenId);
                 lComm.Parameters.Add(lParHighCommentId);
                 lConn.Open();
                 lComm.Connection = lConn;

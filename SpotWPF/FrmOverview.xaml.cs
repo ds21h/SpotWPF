@@ -22,6 +22,7 @@ namespace SpotWPF {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class FrmOverview : Window {
+        private const string cSearchString = "(CONTAINS(Title, '\"[SN:STRING]\"'))";
         private readonly Data mData;
         private readonly Spots mSpots;
         private readonly Comments mComments;
@@ -86,9 +87,11 @@ namespace SpotWPF {
         private async void btnRefresh_Click(object sender, RoutedEventArgs e) {
             Task lRefreshSpots;
             Task lRefreshComments;
+            bool lUpdate;
 
             btnRefresh.IsEnabled = false;
-            lRefreshSpots = Task.Run(() => mSpots.xRefresh());
+            lUpdate = (bool)chkUpdate.IsChecked;
+            lRefreshSpots = Task.Run(() => mSpots.xRefresh(lUpdate));
             lRefreshComments = Task.Run(() => mComments.xRefresh());
             await lRefreshSpots;
             lstSpots.DataContext = null;
@@ -119,8 +122,29 @@ namespace SpotWPF {
                     sInitFilter();
                     await mSpots.xInitSpotsAsync();
                     lstSpots.DataContext = mSpots;
-                    lstSpots.DataContext = mSpots;
                 }
+            }
+        }
+
+        private async void btnSearch_Click(object sender, RoutedEventArgs e) {
+            string lSearch;
+
+            lSearch = txtSearch.Text.Trim();
+            if (!string.IsNullOrEmpty(lSearch)) {
+                mData.xSetView(cSearchString.Replace("[SN:STRING]", txtSearch.Text));
+                lstSpots.DataContext = null;
+                lstSpots.InvalidateVisual();
+                await mSpots.xInitSpotsAsync();
+                lstSpots.DataContext = mSpots;
+            }
+        }
+
+        private void btnRaw_Click(object sender, RoutedEventArgs e) {
+            SpotData lSpot;
+
+            if (lstSpots.SelectedIndex >= 0) { 
+                lSpot = lstSpots.SelectedItem as SpotData;
+                mSpots.xGetSpotRaw(lSpot.xArticleId);
             }
         }
     }

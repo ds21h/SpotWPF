@@ -26,8 +26,9 @@ using Usenet.Nntp.Responses;
 
 namespace SpotWPF {
     public partial class FrmSpot : Window {
-        private const string cFontSize = "18";
+//        private const string cFontSize = "18";
         private readonly SpotExt mSpot;
+        private readonly SpotPage mSpotPage;
         private readonly ScriptingHelper mScriptingHelper;
         private bool mNzbDownload;
 
@@ -35,6 +36,7 @@ namespace SpotWPF {
             InitializeComponent();
             mNzbDownload = false;
             mSpot = new SpotExt(pSpot);
+            mSpotPage = new SpotPage(mSpot);
             brSpot.LoadCompleted += sSpotLoadCompleted;
             mScriptingHelper = new ScriptingHelper();
             mScriptingHelper.eDownLoadPressed += sDownloadPressed;
@@ -66,22 +68,22 @@ namespace SpotWPF {
 
         private async Task sFillScreen() {
             Task lReadSpot;
-            string lHtml = null;
-            StreamReader lReader;
+            //string lHtml = null;
+            //StreamReader lReader;
 
             lReadSpot = mSpot.xInit();
-            try {
-                lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cSpotBase);
-                lHtml = await lReader.ReadToEndAsync().ConfigureAwait(true);
-            } catch (Exception) {
-            }
+            //try {
+            //    lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cSpotBase);
+            //    lHtml = await lReader.ReadToEndAsync().ConfigureAwait(true);
+            //} catch (Exception) {
+            //}
             await lReadSpot.ConfigureAwait(true);
-            if (lHtml == null) {
-                lHtml = "";
-            } else {
-                lHtml = lHtml.Replace("[SN:DESC]", mSpot.xDescription).Replace ("[SN:FONTSIZE]", cFontSize).Replace("[SN:PATH]", Global.cHomeDir);
-            }
-            brSpot.NavigateToString(lHtml);
+            //if (lHtml == null) {
+            //    lHtml = "";
+            //} else {
+            //    lHtml = lHtml.Replace("[SN:DESC]", mSpot.xDescription).Replace ("[SN:FONTSIZE]", cFontSize).Replace("[SN:PATH]", Global.cHomeDir);
+            //}
+            brSpot.NavigateToString(await mSpotPage.xAsyncCreatePage());
         }
 
         private async Task sGetNzb() {
