@@ -187,15 +187,17 @@ namespace SpotWPF {
             NntpClient lClient = new NntpClient(new NntpConnection());
             NntpResponse lResponse;
             NntpGroupResponse lGroupResponse;
-            NntpArticleResponse lArticleResponse;
-            StringBuilder lBuilder;
             StreamReader lReader;
             string lHtml;
+            string lCommentBase = string.Empty;
+            CommentEntry lComment;
+            ArticleCommentProcessor lProcessor;
 
             if (string.IsNullOrEmpty(Global.gCommentBase)) {
                 try {
                     lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cCommentBase);
-                    Global.gCommentBase = await lReader.ReadToEndAsync().ConfigureAwait(true);
+                    lCommentBase = await lReader.ReadToEndAsync().ConfigureAwait(true);
+ //                   Global.gCommentBase = await lReader.ReadToEndAsync().ConfigureAwait(true);
                 } catch (Exception) {
                 }
             }
@@ -207,14 +209,12 @@ namespace SpotWPF {
                         lGroupResponse = lClient.Group(Global.cCommentGroup);
                         if (lGroupResponse.Success) {
                             foreach (long bCommentNumber in lCommentNumbers) {
-                                lArticleResponse = lClient.Article(bCommentNumber);
-                                if (lArticleResponse.Success) {
-                                    lBuilder = new StringBuilder();
-                                    foreach (string bLine in lArticleResponse.Article.Body) {
-                                        lBuilder.Append(bLine);
-                                        lBuilder.Append("<BR>");
-                                    }
-                                    lHtml = Global.gCommentBase.Replace("[SN:DESC]", lBuilder.ToString());
+                                lComment = new CommentEntry();
+                                lProcessor = new ArticleCommentProcessor(lComment);
+                                lResponse = lClient.Article(bCommentNumber, lProcessor);
+                                if (lResponse.Success) {
+                                    lHtml = lCommentBase.Replace("[SN:DESC]", lComment.xComment).Replace("[SN:FROM]", lComment.xAuthor).Replace("[SN:DATE]", lComment.xDateLocalString);
+//                                    lHtml = Global.gCommentBase.Replace("[SN:DESC]", lBuilder.ToString());
                                     brSpot.InvokeScript("AddComment", lHtml);
                                 }
                             }

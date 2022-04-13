@@ -151,6 +151,9 @@ namespace Usenet.Nntp
         /// <returns>An article response object.</returns>
         public NntpArticleResponse Article(long number) =>
             connection.MultiLineCommand($"ARTICLE {number}", new ArticleResponseParser(ArticleRequestType.Article));
+        public NntpResponse Article(long number, IMultiLineProcess pRespProcessor) {
+            return connection.MultiLineRawCommand($"ARTICLE {number}", pRespProcessor, new ArticleProcessResponseParser(ArticleRequestType.Article));
+        }
 
         /// <summary>
         /// The <a href="https://tools.ietf.org/html/rfc3977#section-6.2.1">ARTICLE</a> command 
