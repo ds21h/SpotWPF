@@ -50,7 +50,6 @@ namespace SpotWPF {
         }
 
         private void sProcessRaw() {
-            //              < IMG ID = 'DownloadButton' TITLE = 'Downloaden' STYLE = 'float:right; cursor:hand; margin-right:20px; width: 64px; height:64px;' SRC = "[SN:PATH]/Images/download.png" >
             int lStart;
             int lLastStart;
             int lEnd;
@@ -89,6 +88,18 @@ namespace SpotWPF {
                 if (pIn.StartsWith("[img=")) {
                     lFileName = pIn.Substring(5, pIn.Length - 6) + ".gif";
                     lResult = "<IMG SRC = \"" + Global.cHomeDir + @"\" + Global.cSmileyDir + @"\" + lFileName + "\">";
+                }
+            } else {
+                if (pIn.ToLower() == "[b]") {
+                    lResult = "<b>";
+                } else {
+                    if (pIn.ToLower() == "[/b]") {
+                        lResult = "</b>";
+                    } else {
+                        if (pIn.ToLower() == "[br]") {
+                            lResult = "<br>";
+                        }
+                    }
                 }
             }
             return lResult;

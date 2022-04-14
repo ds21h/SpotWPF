@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace SpotWPF {
     internal static class Global {
-        internal const string cHomeDir = @"E:\Test\Spotz";
+        internal const string cTestHomeDir = @"E:\Test\Spotz";
+        internal static readonly string cHomeDir;
         internal const string cTempDir = "Temp";
         internal const string cSmileyDir = @"Images\Smileys";
         internal const string cSpotBase = "SpotView.htm";
@@ -18,5 +20,17 @@ namespace SpotWPF {
         internal static Server gServer = null;
         internal const string cCommentBase = "CommentEntry.htm";
         internal static string gCommentBase = "";
+        internal static string gSpotBase = "";
+
+        static Global() {
+            string lHomeDir;
+
+            lHomeDir = Directory.GetCurrentDirectory();
+            if (lHomeDir.StartsWith(@"D:\Source")) {
+                cHomeDir = cTestHomeDir; 
+            } else {
+                cHomeDir = lHomeDir;
+            }
+        }
     }
 }

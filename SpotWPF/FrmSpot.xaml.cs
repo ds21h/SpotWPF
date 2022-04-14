@@ -68,21 +68,9 @@ namespace SpotWPF {
 
         private async Task sFillScreen() {
             Task lReadSpot;
-            //string lHtml = null;
-            //StreamReader lReader;
 
             lReadSpot = mSpot.xInit();
-            //try {
-            //    lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cSpotBase);
-            //    lHtml = await lReader.ReadToEndAsync().ConfigureAwait(true);
-            //} catch (Exception) {
-            //}
             await lReadSpot.ConfigureAwait(true);
-            //if (lHtml == null) {
-            //    lHtml = "";
-            //} else {
-            //    lHtml = lHtml.Replace("[SN:DESC]", mSpot.xDescription).Replace ("[SN:FONTSIZE]", cFontSize).Replace("[SN:PATH]", Global.cHomeDir);
-            //}
             brSpot.NavigateToString(await mSpotPage.xAsyncCreatePage());
         }
 
@@ -114,19 +102,6 @@ namespace SpotWPF {
             }
         }
 
-        private async void btnSpot_Click(object sender, RoutedEventArgs e) {
-            btnSpot.IsEnabled = false;
-            await sGetSpot().ConfigureAwait(true);
-            btnSpot.IsEnabled = true;
-        }
-
-        private async Task sGetSpot() {
-            Task lGetSpot;
-
-            lGetSpot = mSpot.xPrintSpot();
-            await lGetSpot.ConfigureAwait(false);
-        }
-
         private async void Window_Loaded(object sender, RoutedEventArgs e) {
             await sFillScreen().ConfigureAwait(true);
         }
@@ -136,15 +111,15 @@ namespace SpotWPF {
             await sGetComments().ConfigureAwait(true);
         }
 
-        private async void btnComment_Click(object sender, RoutedEventArgs e) {
+        private async Task sGetComments() {
             List<long> lCommentNumbers;
             NntpClient lClient = new NntpClient(new NntpConnection());
             NntpResponse lResponse;
             NntpGroupResponse lGroupResponse;
-            NntpArticleResponse lArticleResponse;
-            StringBuilder lBuilder;
             StreamReader lReader;
             string lHtml;
+            CommentEntry lComment;
+            ArticleCommentProcessor lProcessor;
 
             if (string.IsNullOrEmpty(Global.gCommentBase)) {
                 try {
@@ -161,60 +136,11 @@ namespace SpotWPF {
                         lGroupResponse = lClient.Group(Global.cCommentGroup);
                         if (lGroupResponse.Success) {
                             foreach (long bCommentNumber in lCommentNumbers) {
-                                lArticleResponse = lClient.Article(bCommentNumber);
-                                if (lArticleResponse.Success) {
-                                    lBuilder = new StringBuilder();
-                                    foreach (string bLine in lArticleResponse.Article.Body) {
-                                        lBuilder.Append(bLine);
-                                        lBuilder.Append("<BR>");
-                                    }
-                                    lHtml = Global.gCommentBase.Replace("[SN:DESC]", lBuilder.ToString());
-                                    brSpot.InvokeScript("AddComment", lHtml);
-                                }
-                            }
-                        }
-                        lResponse = lClient.Quit();
-                    }
-                }
-            } else {
-                brSpot.InvokeScript("AddComment", "<DIV style='margin - bottom: 20px'>Geen Comments gevonden!</ DIV ><HR><BR>");
-            }
-            brSpot.InvokeScript("HideProgress");
-        }
-
-        private async Task sGetComments() {
-            List<long> lCommentNumbers;
-            NntpClient lClient = new NntpClient(new NntpConnection());
-            NntpResponse lResponse;
-            NntpGroupResponse lGroupResponse;
-            StreamReader lReader;
-            string lHtml;
-            string lCommentBase = string.Empty;
-            CommentEntry lComment;
-            ArticleCommentProcessor lProcessor;
-
-            if (string.IsNullOrEmpty(Global.gCommentBase)) {
-                try {
-                    lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cCommentBase);
-                    lCommentBase = await lReader.ReadToEndAsync().ConfigureAwait(true);
- //                   Global.gCommentBase = await lReader.ReadToEndAsync().ConfigureAwait(true);
-                } catch (Exception) {
-                }
-            }
-
-            lCommentNumbers = await Data.getInstance.xGetCommentsAsync(mSpot.xSpotId).ConfigureAwait(true);
-            if (lCommentNumbers.Count > 0) {
-                if (await lClient.ConnectAsync(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL).ConfigureAwait(true)) {
-                    if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
-                        lGroupResponse = lClient.Group(Global.cCommentGroup);
-                        if (lGroupResponse.Success) {
-                            foreach (long bCommentNumber in lCommentNumbers) {
                                 lComment = new CommentEntry();
                                 lProcessor = new ArticleCommentProcessor(lComment);
                                 lResponse = lClient.Article(bCommentNumber, lProcessor);
                                 if (lResponse.Success) {
-                                    lHtml = lCommentBase.Replace("[SN:DESC]", lComment.xComment).Replace("[SN:FROM]", lComment.xAuthor).Replace("[SN:DATE]", lComment.xDateLocalString);
-//                                    lHtml = Global.gCommentBase.Replace("[SN:DESC]", lBuilder.ToString());
+                                    lHtml = Global.gCommentBase.Replace("[SN:DESC]", lComment.xComment).Replace("[SN:FROM]", lComment.xAuthor).Replace("[SN:DATE]", lComment.xDateLocalString);
                                     brSpot.InvokeScript("AddComment", lHtml);
                                 }
                             }

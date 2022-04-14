@@ -7,7 +7,7 @@ using System.IO;
 
 namespace SpotWPF {
     internal static class Temp {
-        private const string cTempPath = Global.cHomeDir + @"\" + Global.cTempDir;
+        private static readonly string cTempPath;
         private const string cTempName = "Tmp";
         private const string cTempSuffix = ".tmp";
         private static int mStartSeq;
@@ -16,6 +16,7 @@ namespace SpotWPF {
             DirectoryInfo lTempDir;
             FileInfo[] lFiles;
 
+            cTempPath = Global.cHomeDir + @"\" + Global.cTempDir;
             lTempDir = new DirectoryInfo(cTempPath);
             if (!lTempDir.Exists) { 
                 lTempDir.Create();

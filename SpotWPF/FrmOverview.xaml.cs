@@ -42,6 +42,7 @@ namespace SpotWPF {
             Global.gServer = mData.xGetServer("I-telligent SSL");
             mSpots = new Spots();
             mComments = Comments.getInstance;
+            Task.Run(() => mComments.xRefresh());
             mFilters = mData.xGetFilters();
             cmbFilter.ItemsSource = mFilters;
             cmbFilter.DisplayMemberPath = "xTitle";

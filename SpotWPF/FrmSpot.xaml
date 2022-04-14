@@ -15,8 +15,6 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <WebBrowser x:Name="brSpot" Grid.Row="0" Margin="5"/>
-        <Button x:Name="btnComment" Content="Comment" HorizontalAlignment="Left" Margin="36,5,5,5" Grid.Row="1" VerticalAlignment="Center" Click="btnComment_Click"/>
-        <Button x:Name="btnSpot" Content="Spot" HorizontalAlignment="Left" Margin="100,5,5,5" Grid.Row="1" VerticalAlignment="Center" Click="btnSpot_Click"/>
 
     </Grid>
 </Window>
