@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,7 +32,7 @@ namespace SpotWPF {
                 lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cSpotBase);
                 Global.gSpotBase = await lReader.ReadToEndAsync().ConfigureAwait(false);
             } catch (Exception) {
-                Global.gSpotBase = string.Empty;
+                Global.gSpotBase = Global.gBaseError;
             }
        }
 

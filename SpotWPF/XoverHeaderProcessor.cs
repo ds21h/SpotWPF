@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SpotWPF {
-    internal class XoverHeaderProcessor : IMultiLineProcess {
+    internal class XoverHeaderProcessor : NntpBase.Nntp.IMultiLineProcess {
         //        private StreamWriter mStream;
         private readonly string cDispose = "DISPOSE ";
         private Data mData;
         private DateTimeOffset mMinDate;
-        private List<string> mDispose;
+        private readonly List<string> mDispose;
 
         internal XoverHeaderProcessor() {
             mDispose = new List<string>();

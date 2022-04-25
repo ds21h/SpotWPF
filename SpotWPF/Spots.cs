@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections;
-using System.Linq;
-using System.Text;
-using System.Xml;
 using System.Threading.Tasks;
-using Usenet.Nntp;
-using Usenet.Nntp.Models;
-using Usenet.Nntp.Responses;
-using System.Collections.Immutable;
+using NntpBase.Nntp;
+using NntpBase.Nntp.Models;
+using NntpBase.Nntp.Responses;
 
 namespace SpotWPF {
     internal class Spots : IList<SpotData>, IList {

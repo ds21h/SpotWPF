@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+﻿using System.IO;
 
 namespace SpotWPF {
     internal static class Global {
@@ -21,6 +16,7 @@ namespace SpotWPF {
         internal const string cCommentBase = "CommentEntry.htm";
         internal static string gCommentBase = "";
         internal static string gSpotBase = "";
+        internal static string gBaseError = "<!DOCTYPE HTML><HTML><BODY><br><b>HTML base file missing!!!!</b><BR><BR></BODY></HTML>";
 
         static Global() {
             string lHomeDir;

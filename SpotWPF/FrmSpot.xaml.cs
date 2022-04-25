@@ -1,32 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.Net;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows.Navigation;
 using System.Runtime.InteropServices;
-using Usenet.Nntp;
-using Usenet.Nntp.Models;
-using Usenet.Nntp.Responses;
+using NntpBase.Nntp;
+using NntpBase.Nntp.Responses;
 
 // https://stackoverflow.com/questions/470222/hosting-and-interacting-with-a-webpage-inside-a-wpf-app
 
 namespace SpotWPF {
     public partial class FrmSpot : Window {
-//        private const string cFontSize = "18";
         private readonly SpotExt mSpot;
         private readonly SpotPage mSpotPage;
         private readonly ScriptingHelper mScriptingHelper;
@@ -81,14 +67,18 @@ namespace SpotWPF {
 
             lGetNzb = mSpot.xGetNZB();
             await lGetNzb.ConfigureAwait(true);
-            lDialog = new SaveFileDialog();
-            lDialog.Filter = "NZB (*.nzb)|*.nzb";
-            lDialog.InitialDirectory = KnownFolders.GetPath(KnownFolder.Downloads);
-            lDialog.FileName = mSpot.xTitle;
-            if ((bool)lDialog.ShowDialog()) {
-                lStream = new StreamWriter(lDialog.FileName, false);
-                lStream.Write(mSpot.xNzb);
-                lStream.Close();
+            if (string.IsNullOrEmpty(mSpot.xNzb)) {
+                brSpot.InvokeScript("UserMessage", "No NZB found!");
+            } else {
+                lDialog = new SaveFileDialog();
+                lDialog.Filter = "NZB (*.nzb)|*.nzb";
+                lDialog.InitialDirectory = KnownFolders.GetPath(KnownFolder.Downloads);
+                lDialog.FileName = mSpot.xTitle;
+                if ((bool)lDialog.ShowDialog()) {
+                    lStream = new StreamWriter(lDialog.FileName, false);
+                    lStream.Write(mSpot.xNzb);
+                    lStream.Close();
+                }
             }
         }
 
@@ -107,8 +97,10 @@ namespace SpotWPF {
         }
 
         private async void sSpotLoadCompleted(object sender, NavigationEventArgs e) {
-            await sGetPrv().ConfigureAwait(true);
-            await sGetComments().ConfigureAwait(true);
+            if (Global.gSpotBase != Global.gBaseError) {
+                await sGetPrv().ConfigureAwait(true);
+                await sGetComments().ConfigureAwait(true);
+            }
         }
 
         private async Task sGetComments() {
@@ -126,6 +118,7 @@ namespace SpotWPF {
                     lReader = new StreamReader(Global.cHomeDir + @"\" + Global.cCommentBase);
                     Global.gCommentBase = await lReader.ReadToEndAsync().ConfigureAwait(true);
                 } catch (Exception) {
+                    Global.gCommentBase = Global.gBaseError;
                 }
             }
 

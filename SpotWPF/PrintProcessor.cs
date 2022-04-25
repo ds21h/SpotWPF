@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+﻿using System.IO;
 
 namespace SpotWPF {
-    internal class PrintProcessor : IMultiLineProcess {
+    internal class PrintProcessor : NntpBase.Nntp.IMultiLineProcess {
         private StreamWriter mStream;
         private readonly string mFileName;
 
-        internal PrintProcessor(string pFileName) { 
+        internal PrintProcessor(string pFileName) {
             mFileName = pFileName;
         }
 

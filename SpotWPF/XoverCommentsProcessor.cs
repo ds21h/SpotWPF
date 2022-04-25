@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+using NntpBase.Nntp;
 
 namespace SpotWPF {
     internal class XoverCommentsProcessor : IMultiLineProcess {
-        private DateTimeOffset mMinDate;
+        private readonly DateTimeOffset mMinDate;
         Data mData = null;
 
         internal XoverCommentsProcessor() {

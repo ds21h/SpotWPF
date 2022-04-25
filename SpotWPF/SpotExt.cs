@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Usenet.Nntp;
-using Usenet.Nntp.Models;
-using Usenet.Nntp.Responses;
+using NntpBase.Nntp;
+using NntpBase.Nntp.Models;
+using NntpBase.Nntp.Responses;
 using System.Collections.Immutable;
 using System.Xml;
 using System.IO;
@@ -284,7 +283,7 @@ namespace SpotWPF {
                             lResponse = lClient.Quit();
                         }
                     }
-                } catch (Usenet.Exceptions.NntpException) {
+                } catch (NntpBase.Exceptions.NntpException) {
                 }
             }
 

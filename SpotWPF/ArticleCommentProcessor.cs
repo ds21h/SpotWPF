@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SpotWPF {
-    internal class ArticleCommentProcessor : IMultiLineProcess {
+    internal class ArticleCommentProcessor : NntpBase.Nntp.IMultiLineProcess {
         private bool mHeaders;
-        private CommentEntry mComment;
+        private readonly CommentEntry mComment;
         private StringBuilder mText;
 
         internal ArticleCommentProcessor(CommentEntry pComment) {

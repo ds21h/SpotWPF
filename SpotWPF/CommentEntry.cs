@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SpotWPF {
     internal class CommentEntry {
@@ -55,7 +52,6 @@ namespace SpotWPF {
             int lEnd;
             StringBuilder lResult;
 
-            lStart = 0;
             lLastStart = 0;
             lResult = new StringBuilder();
             do {

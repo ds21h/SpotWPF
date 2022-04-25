@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.IO;
 
 namespace SpotWPF {
-    public class RawProcessor : IMultiLineProcess {
+    public class RawProcessor : NntpBase.Nntp.IMultiLineProcess {
         private StreamWriter mStream;
         private List<string> mLines;
         private bool mHeaders;
