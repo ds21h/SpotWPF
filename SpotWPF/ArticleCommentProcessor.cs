@@ -16,7 +16,7 @@ namespace SpotWPF {
             mText = new StringBuilder();
         }
 
-        public void xProcessLine(string pLine) {
+        public bool xProcessLine(string pLine) {
             int lIndex;
             DateTimeOffset lDate;
 
@@ -41,6 +41,7 @@ namespace SpotWPF {
                 mText.Append(pLine);
                 mText.Append("<BR>");
             }
+            return true;
         }
 
         public void xEndProcess() {

@@ -23,7 +23,7 @@ namespace SpotWPF {
             mLines.Clear();
         }
 
-        public void xProcessLine(string pLine) {
+        public bool xProcessLine(string pLine) {
             if (mHeaders) {
                 mStream.WriteLine(pLine);
                 if (pLine.Length == 0) {
@@ -33,6 +33,7 @@ namespace SpotWPF {
                 mStream.Write(pLine);
             }
             mLines.Add(pLine);
+            return true;    
         }
 
         public void xEndProcess() {

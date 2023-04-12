@@ -14,7 +14,7 @@ namespace SpotWPF {
             mData = Data.getInstance;
         }
 
-        public void xProcessLine(string pLine) {
+        public bool xProcessLine(string pLine) {
             string[] lHeaders;
             string[] lReferences;
             string lDateString;
@@ -45,6 +45,7 @@ namespace SpotWPF {
                     }
                 }
             }
+            return true;
         }
 
         public void xEndProcess() {

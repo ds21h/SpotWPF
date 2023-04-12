@@ -65,15 +65,17 @@ namespace SpotWPF {
             NntpArticleResponse lArticleResponse;
             NntpClient lClient = new NntpClient(new NntpConnection());
 
-            if (await lClient.ConnectAsync(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
-                if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
-                    lArticleResponse = lClient.Head(new NntpMessageId(xArticleId));
-                    if (lArticleResponse.Success) {
-                        sProcessArticle(lArticleResponse.Article);
+            try {
+                if (await lClient.ConnectAsync(Global.gServer.xReader, Global.gServer.xPort, Global.gServer.xSSL)) {
+                    if (lClient.Authenticate(Global.gServer.xUserId, Global.gServer.xPassWord)) {
+                        lArticleResponse = lClient.Head(new NntpMessageId(xArticleId));
+                        if (lArticleResponse.Success) {
+                            sProcessArticle(lArticleResponse.Article);
+                        }
+                        lResponse = lClient.Quit();
                     }
-                    lResponse = lClient.Quit();
                 }
-            }
+            } catch (Exception ex) { }
         }
 
         private void sProcessArticle(NntpArticle pArticle) {

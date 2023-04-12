@@ -26,7 +26,7 @@ namespace SpotWPF {
             mDispose.Clear();
         }
 
-        public void xProcessLine(string pLine) {
+        public bool xProcessLine(string pLine) {
             SpotData lSpot;
             string[] lHeaders;
             string lDispose;
@@ -56,6 +56,7 @@ namespace SpotWPF {
                     }
                 }
             }
+            return true;
         }
 
         private bool sCheckDate(string pDate) {

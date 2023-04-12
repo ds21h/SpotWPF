@@ -13,8 +13,9 @@ namespace SpotWPF {
             mStream = new StreamWriter(mFileName, false);
         }
 
-        public void xProcessLine(string pLine) {
+        public bool xProcessLine(string pLine) {
             mStream.WriteLine(pLine);
+            return true;
         }
 
         public void xEndProcess() {
