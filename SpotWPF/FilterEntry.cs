@@ -2,11 +2,13 @@
     internal class FilterEntry {
         private int mSeq;
         private string mTitle;
+        private bool mSpecial;
         private string mFilterString;
 
-        internal FilterEntry(int pSeq, string pTitle, string pFilterString) {
+        internal FilterEntry(int pSeq, string pTitle, bool pSpecial, string pFilterString) {
             mSeq = pSeq;
             mTitle = pTitle;
+            mSpecial = pSpecial;
             mFilterString = pFilterString;
         }
 
@@ -25,6 +27,12 @@
         public string xFilterString {
             get { 
                 return mFilterString;
+            }
+        }
+
+        internal bool xSpecial {
+            get {
+                return mSpecial;
             }
         }
     }

@@ -436,6 +436,7 @@ namespace SpotWPF {
             int lSeq;
             string lTitle;
             string lFilterString;
+            bool lSpecial;
 
             lFilters = new List<FilterEntry>();
             using (var lComm = new SqlCommand())
@@ -455,8 +456,9 @@ namespace SpotWPF {
                             } else { 
                                 lFilterString = lRdr.GetString(2);
                             }
+                            lSpecial = lRdr.GetBoolean(3);
 
-                            lFilter = new FilterEntry(lSeq, lTitle, lFilterString);
+                            lFilter = new FilterEntry(lSeq, lTitle, lSpecial, lFilterString);
                             lFilters.Add(lFilter);
                         }
                     }

@@ -18,7 +18,9 @@ namespace SpotWPF {
         private readonly Comments mComments;
         private int mFilter;
         private bool mFrmInit;
+        private List<FilterEntry> mFiltersTot;
         private List<FilterEntry> mFilters;
+        private bool mSpecial;
 
         public FrmOverview() {
             ILoggerFactory lFactory;
@@ -28,16 +30,30 @@ namespace SpotWPF {
             NntpBase.Util.Logger.Factory = lFactory;
             mFrmInit = false;
             mFilter = -1;
+            mSpecial = false;
             mData = Data.getInstance;
             Global.gServer = mData.xGetServer("I-telligent SSL");
             mSpots = new Spots();
             mComments = Comments.getInstance;
             Task.Run(() => mComments.xRefresh());
-            mFilters = mData.xGetFilters();
+            mFiltersTot = mData.xGetFilters();
+            sSetFilters();
+        }
+
+        private void sSetFilters() {
+            if (mSpecial) {
+                mFilters = mFiltersTot;
+            } else {
+                mFilters = new List<FilterEntry>();
+                foreach(FilterEntry bEntry in mFiltersTot) {
+                    if (!bEntry.xSpecial) {
+                        mFilters.Add(bEntry);
+                    }
+                }
+            }
             cmbFilter.ItemsSource = mFilters;
             cmbFilter.DisplayMemberPath = "xTitle";
         }
-
         private void lstSpots_SizeChanged(object sender, SizeChangedEventArgs e) {
             GridView lGridView;
             double lWorkWidth;
@@ -121,12 +137,23 @@ namespace SpotWPF {
             string lSearch;
 
             lSearch = txtSearch.Text.Trim();
-            if (!string.IsNullOrEmpty(lSearch)) {
-                mData.xSetView(cSearchString.Replace("[SN:STRING]", txtSearch.Text));
-                lstSpots.DataContext = null;
-                lstSpots.InvalidateVisual();
-                await mSpots.xInitSpotsAsync();
-                lstSpots.DataContext = mSpots;
+            if (lSearch.Length == 0) {
+                mSpecial = false;
+                sSetFilters();
+            } else {
+                if (lSearch == "Xxx") {
+                    mSpecial = true;
+                    txtSearch.Text = "";
+                    sSetFilters();
+                } else {
+                    if (!string.IsNullOrEmpty(lSearch)) {
+                        mData.xSetView(cSearchString.Replace("[SN:STRING]", txtSearch.Text));
+                        lstSpots.DataContext = null;
+                        lstSpots.InvalidateVisual();
+                        await mSpots.xInitSpotsAsync();
+                        lstSpots.DataContext = mSpots;
+                    }
+                }
             }
         }
 
