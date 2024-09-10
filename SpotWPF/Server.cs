@@ -1,4 +1,6 @@
-﻿namespace SpotWPF {
+﻿using System;
+
+namespace SpotWPF {
     internal class Server {
         private int mId;
         private string mName;
@@ -10,8 +12,9 @@
         private long mHighSpotId;
         private long mHighSeenId;
         private long mHighCommentId;
+        private DateTime mLastRefresh;
 
-        internal Server(int pId, string pName, string pReader, int pPort, bool pSSL, string pUserId, string pPassWord, long pHighSpotId, long pHighSeenId, long pHighCommentId) {
+        internal Server(int pId, string pName, string pReader, int pPort, bool pSSL, string pUserId, string pPassWord, long pHighSpotId, long pHighSeenId, long pHighCommentId, DateTime pLastRefresh) {
             mId = pId;
             mName = pName;
             mReader = pReader;
@@ -22,6 +25,7 @@
             mHighSpotId = pHighSpotId;
             mHighSeenId = pHighSeenId;
             mHighCommentId = pHighCommentId;
+            mLastRefresh = pLastRefresh;
         }
 
         internal int xId {
@@ -97,6 +101,15 @@
             }
             set {
                 mHighCommentId = value;
+            }
+        }
+
+        internal DateTime xLastRefresh {
+            get {
+                return mLastRefresh;
+            }
+            set {
+                mLastRefresh = value;
             }
         }
     }

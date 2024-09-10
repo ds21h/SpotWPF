@@ -76,6 +76,7 @@ namespace SpotWPF {
             sInitFilter();
             await mSpots.xInitSpotsAsync();
             lstSpots.DataContext = mSpots;
+            lbRefresh.Content = Global.gServer.xLastRefresh.ToLocalTime().ToString("ddd d-M-yyyy HH:mm");
             mFrmInit = true;
         }
 
@@ -104,6 +105,7 @@ namespace SpotWPF {
             lstSpots.DataContext = null;
             lstSpots.InvalidateVisual();
             lstSpots.DataContext = mSpots;
+            lbRefresh.Content = Global.gServer.xLastRefresh.ToLocalTime().ToString("ddd d-M-yyyy HH:mm");
             await lRefreshComments;
             btnRefresh.IsEnabled = true;
         }

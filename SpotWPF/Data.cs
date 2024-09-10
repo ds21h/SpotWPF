@@ -17,7 +17,7 @@ namespace SpotWPF {
             } 
         }
 
-        private const string cConnStr = "Persist Security Info=False;Integrated Security=SSPI;database=Spotz;server=LAPTOP-E6GEPR5E";
+        private const string cConnStr = "Persist Security Info=False;Integrated Security=SSPI;database=Spotz;Server=localhost;Trusted_Connection=True";
 
         internal async Task<int> xGetNumberSpotsAsync() {
             SqlDataReader lRdr;
@@ -193,6 +193,7 @@ namespace SpotWPF {
             long lHighSpotId;
             long lHighSeenId;
             long lHighCommentId;
+            DateTime lLastRefresh;
 
             lParName = SQLHulp.gParInit("@Name", pName);
             using (var lComm = new SqlCommand())
@@ -216,8 +217,13 @@ namespace SpotWPF {
                             lHighSpotId = lRdr.GetInt64(7);
                             lHighSeenId = lRdr.GetInt64(8);
                             lHighCommentId = lRdr.GetInt64(9);
+                            if (lRdr.IsDBNull(10)) {
+                                lLastRefresh = DateTime.MinValue;
+                            } else {
+                                lLastRefresh = lRdr.GetDateTime(10);
+                            }
 
-                            lServer = new Server(lId, lName, lReader, lPort, lSSL, lUserId, lPassWord, lHighSpotId, lHighSeenId, lHighCommentId);
+                            lServer = new Server(lId, lName, lReader, lPort, lSSL, lUserId, lPassWord, lHighSpotId, lHighSeenId, lHighCommentId, lLastRefresh);
                         }
                     }
 
@@ -240,6 +246,7 @@ namespace SpotWPF {
             SqlParameter lParHighSpotId;
             SqlParameter lParHighSeenId;
             SqlParameter lParHighCommentId;
+            SqlParameter lParLastRefresh;
             int lResult;
 
             lParId = SQLHulp.gParInit("@Id", pServer.xId);
@@ -252,6 +259,7 @@ namespace SpotWPF {
             lParHighSpotId = SQLHulp.gParInit("@HighSpotId", pServer.xHighSpotId);
             lParHighSeenId = SQLHulp.gParInit("@HighSeenId", pServer.xHighSeenId);
             lParHighCommentId = SQLHulp.gParInit("@HighCommentId", pServer.xHighCommentId);
+            lParLastRefresh = SQLHulp.gParInit("@LastRefresh", pServer.xLastRefresh);
             using (var lComm = new SqlCommand())
             using (var lConn = new SqlConnection(cConnStr)) {
                 lComm.Parameters.Add(lParId);
@@ -264,6 +272,7 @@ namespace SpotWPF {
                 lComm.Parameters.Add(lParHighSpotId);
                 lComm.Parameters.Add(lParHighSeenId);
                 lComm.Parameters.Add(lParHighCommentId);
+                lComm.Parameters.Add(lParLastRefresh);
                 lConn.Open();
                 lComm.Connection = lConn;
                 lComm.CommandText = "UpdateServer";

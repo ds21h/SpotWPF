@@ -336,6 +336,7 @@ namespace SpotWPF {
                             if (lResponse.Success) {
                                 lDispose = lProcessor.xDispose;
                                 Global.gServer.xSetHighSpotId(lHigh, pUpdate);
+                                Global.gServer.xLastRefresh = DateTime.Now;
                                 mData.xUpdateServer(Global.gServer);
                             }
                             if (lDispose != null) {

@@ -98,9 +98,12 @@
         <Button x:Name="btnSearch" Grid.Row="0" Content="Search" HorizontalAlignment="Left" Margin="215,0,0,0" VerticalAlignment="Center" Click="btnSearch_Click"/>
         <ListView x:Name="lstSpots" Grid.Row="1" Margin="5" Style="{DynamicResource lvStyle}" ItemContainerStyle="{StaticResource lvItemStyle}" SizeChanged="lstSpots_SizeChanged" SelectionMode="Single">
         </ListView>
-        <Button x:Name="btnRefresh" Content="Refresh" HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center" Grid.Row="2" Click="btnRefresh_Click"/>
+        <StackPanel Orientation="Horizontal" Margin="5,0,0,0" Grid.Row=" 2" VerticalAlignment="Center">
+            <Button x:Name="btnRefresh" Content="Refresh" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Center" Click="btnRefresh_Click"/>
+            <CheckBox x:Name="chkUpdate" Content="Update New" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" IsChecked="True"/>
+            <Label x:Name="lbRefresh" Content="" HorizontalAlignment="Left" VerticalAlignment="Center" Margin=" 5,0,0,0"/>
+        </StackPanel>
         <Button x:Name="btnRaw" Content="Raw" HorizontalAlignment="Right" Margin="0,0,15,0" Grid.Row="2" VerticalAlignment="Center" Click="btnRaw_Click"/>
-        <CheckBox x:Name="chkUpdate" Content="Update New" HorizontalAlignment="Left" Margin="60,0,0,0" Grid.Row="2" VerticalAlignment="Center" IsChecked="True"/>
-
+        
     </Grid>
 </Window>
