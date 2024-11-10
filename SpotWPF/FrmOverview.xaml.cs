@@ -167,5 +167,11 @@ namespace SpotWPF {
                 mSpots.xGetSpotRaw(lSpot.xArticleId);
             }
         }
+
+        private void txtSearch_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Key == Key.Enter) {
+                btnSearch_Click(null, new RoutedEventArgs());
+            }
+        }
     }
 }

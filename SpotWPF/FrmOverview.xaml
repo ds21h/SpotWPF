@@ -94,7 +94,7 @@
 
         <ComboBox x:Name="cmbFilter" Grid.Row="0" Margin="5" HorizontalAlignment="Left" SelectedIndex="0" SelectionChanged="cmbFilter_SelectionChanged" IsReadOnly="True">
         </ComboBox>
-        <TextBox x:Name="txtSearch" Grid.Row="0" HorizontalAlignment="Left" Margin="90,0,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Width="120"/>
+        <TextBox x:Name="txtSearch" Grid.Row="0" HorizontalAlignment="Left" Margin="90,0,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Width="120" KeyDown="txtSearch_KeyDown"/>
         <Button x:Name="btnSearch" Grid.Row="0" Content="Search" HorizontalAlignment="Left" Margin="215,0,0,0" VerticalAlignment="Center" Click="btnSearch_Click"/>
         <ListView x:Name="lstSpots" Grid.Row="1" Margin="5" Style="{DynamicResource lvStyle}" ItemContainerStyle="{StaticResource lvItemStyle}" SizeChanged="lstSpots_SizeChanged" SelectionMode="Single">
         </ListView>
