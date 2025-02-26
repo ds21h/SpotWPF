@@ -213,8 +213,19 @@ namespace SpotWPF {
                 return mTitle;
             }
             set {
-                mTitle = value;
+                mTitle = sRecodeTitle(value);
             }
+        }
+
+        private string sRecodeTitle(string pTitle) {
+            string lResult;
+            Encoding iso = Encoding.GetEncoding("ISO-8859-1");
+            Encoding utf8 = Encoding.UTF8;
+
+            byte[] isoBytes = iso.GetBytes(pTitle);
+            lResult = utf8.GetString(isoBytes);
+
+            return lResult;
         }
 
         internal string xTag {
