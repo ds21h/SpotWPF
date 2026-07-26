@@ -11,7 +11,7 @@ A basic SpotReader like SpotNet. Created mainly for study purposes.
 ##### Version 0.5.2 - 26-07-2026
 
 * Updated to .NET 10.0
-* Deleted ourdated SSL protocols
+* Deleted outdated SSL protocols
 * Upgraded SQLServer connection from System.Data.SqlClient to Microsoft.Data.SqlClient
 
 
