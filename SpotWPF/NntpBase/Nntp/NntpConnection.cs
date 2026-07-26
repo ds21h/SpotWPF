@@ -166,7 +166,8 @@ namespace NntpBase.Nntp
             var sslStream = new SslStream(stream);
             log.LogInformation("Get Stream Ssl aquired");
             // JB: Added certificationdata and protocols. Default values no longer sufficient (win 11 / .net 6.0).
-            sslStream.AuthenticateAsClient(hostname, new X509Certificate2Collection(), SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12, false);
+//            sslStream.AuthenticateAsClient(hostname, new X509Certificate2Collection(), SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12, false);
+            sslStream.AuthenticateAsClient(hostname, new X509Certificate2Collection(), SslProtocols.Tls12, false);
             log.LogInformation("Get Stream Ssl Authenticated");
             return new CountingStream(sslStream);
         }
@@ -182,7 +183,8 @@ namespace NntpBase.Nntp
             var sslStream = new SslStream(stream);
             log.LogInformation("Get Stream Ssl aquired");
             // JB: Added certificationdata and protocols. Default values no longer sufficient (win 11 / .net 6.0).
-            await sslStream.AuthenticateAsClientAsync(hostname, new X509Certificate2Collection(), SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12, false);
+//            await sslStream.AuthenticateAsClientAsync(hostname, new X509Certificate2Collection(), SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12, false);
+            await sslStream.AuthenticateAsClientAsync(hostname, new X509Certificate2Collection(), SslProtocols.Tls12, false);
             log.LogInformation("Get Stream Ssl Authenticated");
             return new CountingStream(sslStream);
         }

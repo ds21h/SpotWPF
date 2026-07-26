@@ -103,7 +103,6 @@
             <CheckBox x:Name="chkUpdate" Content="Update New" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" IsChecked="True"/>
             <Label x:Name="lbRefresh" Content="" HorizontalAlignment="Left" VerticalAlignment="Center" Margin=" 5,0,0,0"/>
         </StackPanel>
-        <Button x:Name="btnRaw" Content="Raw" HorizontalAlignment="Right" Margin="0,0,15,0" Grid.Row="2" VerticalAlignment="Center" Click="btnRaw_Click"/>
         
     </Grid>
 </Window>

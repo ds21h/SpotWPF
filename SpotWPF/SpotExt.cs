@@ -75,7 +75,7 @@ namespace SpotWPF {
                         lResponse = lClient.Quit();
                     }
                 }
-            } catch (Exception ex) { }
+            } catch (Exception) { }
         }
 
         private void sProcessArticle(NntpArticle pArticle) {

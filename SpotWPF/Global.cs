@@ -2,7 +2,7 @@
 
 namespace SpotWPF {
     internal static class Global {
-        internal const string cTestHomeDir = @"E:\Test\Spotz";
+        internal const string cTestHomeDir = @"D:\Test\Spotz";
         internal static readonly string cHomeDir;
         internal const string cTempDir = "Temp";
         internal const string cSmileyDir = @"Images\Smileys";

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace SpotWPF {
     internal sealed class Data {
@@ -17,7 +17,8 @@ namespace SpotWPF {
             } 
         }
 
-        private const string cConnStr = "Persist Security Info=False;Integrated Security=SSPI;database=Spotz;Server=localhost;Trusted_Connection=True";
+//        private const string cConnStr = "Persist Security Info=False;Integrated Security=SSPI;database=Spotz;Server=localhost;Trusted_Connection=True";
+        private const string cConnStr = "Persist Security Info=False;Integrated Security=SSPI;database=Spotz;Server=localhost\\MSSQLSERVER01;TrustServerCertificate=True";
 
         internal async Task<int> xGetNumberSpotsAsync() {
             SqlDataReader lRdr;

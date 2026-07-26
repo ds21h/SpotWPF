@@ -12,7 +12,8 @@ namespace SpotWPF {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class FrmOverview : Window {
-        private const string cSearchString = "(CONTAINS(Title, '\"[SN:STRING]\"'))";
+//        private const string cSearchString = "(CONTAINS(Title, '\"[SN:STRING]\"'))";
+        private const string cSearchString = "Title LIKE '%[SN:STRING]%'";
         private readonly Data mData;
         private readonly Spots mSpots;
         private readonly Comments mComments;
@@ -159,14 +160,14 @@ namespace SpotWPF {
             }
         }
 
-        private void btnRaw_Click(object sender, RoutedEventArgs e) {
+/*        private void btnRaw_Click(object sender, RoutedEventArgs e) {
             SpotData lSpot;
 
             if (lstSpots.SelectedIndex >= 0) { 
                 lSpot = lstSpots.SelectedItem as SpotData;
                 mSpots.xGetSpotRaw(lSpot.xArticleId);
             }
-        }
+        } */
 
         private void txtSearch_KeyDown(object sender, KeyEventArgs e) {
             if (e.Key == Key.Enter) {
