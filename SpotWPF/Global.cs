@@ -11,7 +11,7 @@ namespace SpotWPF {
         internal const string cSpotGroup = "free.pt";
         internal const string cCommentGroup = "free.usenet";
         internal const string cMessageIdSuffix = "@spot.net>";
-        internal const int cMaxAge = 1500;
+        internal const int cMaxAge = 4000;
         internal static Server gServer = null;
         internal const string cCommentBase = "CommentEntry.htm";
         internal static string gCommentBase = "";
